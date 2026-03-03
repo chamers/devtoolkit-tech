@@ -45,6 +45,29 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  /* -------------------------------------------------------------------------
+     Utility colors used for categories
+  ------------------------------------------------------------------------- */
+  --color-green-vogue: oklch(0.292 0.0841 252.89);
+  --color-ice-berg: oklch(0.9288 0.0214 223.01);
+  --color-tiara: oklch(0.8413 0.0155 207.1);
+  --color-tiara-light: oklch(95.899% 0.00951 222.558);
+  --color-tangaroa: oklch(0.2364 0.0816 259.61);
+  --color-deep-cove: oklch(0.2004 0.0674 261.15);
+  --color-fuchsia-gem: oklch(0.5356 0.2253 335.66);
+  --color-fuchsia-gem-10: oklch(0.5356 0.2253 335.66 / 0.1);
+  --color-fuchsia-gem-50: oklch(0.5356 0.2253 335.66 / 0.5);
+  --color-soft-amber: oklch(0.6343 0.1924 41.18);
+  --color-soft-amber-10: oklch(0.6343 0.1924 41.18 / 0.1);
+  --color-soft-amber-50: oklch(0.6343 0.1924 41.18 / 0.5);
+  --color-catalina-blue: oklch(0.3643 0.1213 256.27);
+  --color-comet: oklch(0.5055 0.0395 270.52);
+  --color-deep-blush: oklch(0.6928 0.1512 14.24);
+  --color-deep-blush-10: oklch(0.6928 0.1512 14.24 / 0.1);
+  --color-deep-blush-50: oklch(0.6928 0.1512 14.24 / 0.5);
+  --color-waterloo: oklch(0.6122 0.026 264.36);
+  --color-santas-gray: oklch(0.6915 0.0252 264.4);
 }
 
 :root {

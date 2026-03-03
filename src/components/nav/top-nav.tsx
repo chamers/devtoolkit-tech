@@ -1,70 +1,62 @@
-import {
-  Menubar,
-  MenubarCheckboxItem,
-  MenubarContent,
-  MenubarItem,
-  MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
-  MenubarTrigger,
-} from "@/components/ui/menubar";
 import Link from "next/link";
 import Image from "next/image";
+
+import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
+
 import ModeToggle from "./mode-toggle";
+import MobileNav from "./mobile-nav";
+
 const TopNav = () => {
   return (
-    <Menubar>
-      <div className="flex-none">
-        <MenubarMenu>
-          {/* LOGO */}
-
-          <Link href="/">
+    <header className="border-b bg-background">
+      <div className="mx-auto flex h-14 items-center px-4">
+        {/* Left: logo */}
+        <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center">
             <span className="sr-only">DevToolkit</span>
 
-            {/* Light mode logo */}
             <Image
               src="/logos/logo.png"
               alt="DevToolkit"
-              className="block dark:hidden h-auto w-auto hover:cursor-pointer"
+              className="block dark:hidden h-auto w-auto"
               width={70}
               height={70}
+              priority
             />
 
-            {/* Dark mode logo */}
             <Image
               src="/logos/logo-dark.png"
               alt="DevToolkit (dark)"
-              className="hidden dark:block h-auto w-auto hover:cursor-pointer"
+              className="hidden dark:block h-auto w-auto"
               width={70}
               height={70}
+              priority
             />
           </Link>
-        </MenubarMenu>
-      </div>
-      <div className="flex flex-grow items-center justify-end gap-1">
-        <MenubarMenu>
-          <MenubarTrigger className="text-base font-normal">
-            Dashboard
-          </MenubarTrigger>
-          {/* <MenubarContent className="w-64">
-            <MenubarCheckboxItem>Always Show Bookmarks Bar</MenubarCheckboxItem>
-            <MenubarCheckboxItem checked>
-              Always Show Full URLs
-            </MenubarCheckboxItem>
-            <MenubarSeparator />
-            <MenubarItem inset>
-              Reload <MenubarShortcut>⌘R</MenubarShortcut>
-            </MenubarItem>
-            <MenubarItem disabled inset>
-              Force Reload <MenubarShortcut>⇧⌘R</MenubarShortcut>
-            </MenubarItem>
-          </MenubarContent> */}
-        </MenubarMenu>
-        <MenubarMenu>
+        </div>
+
+        {/* Spacer pushes right side */}
+        <div className="flex-1" />
+
+        {/* Desktop nav */}
+        <div className="hidden md:block">
+          <Menubar className="border-0 bg-transparent shadow-none p-0">
+            <MenubarMenu>
+              <MenubarTrigger className="text-base font-normal">
+                Dashboard
+              </MenubarTrigger>
+            </MenubarMenu>
+          </Menubar>
+        </div>
+
+        {/* Right: actions (always right) */}
+        <div className="ml-2 flex items-center gap-1">
           <ModeToggle />
-        </MenubarMenu>
+          <MobileNav />
+        </div>
       </div>
-    </Menubar>
+    </header>
   );
 };
+
 export default TopNav;
