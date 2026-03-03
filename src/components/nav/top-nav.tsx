@@ -5,6 +5,13 @@ import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
 
 import ModeToggle from "./mode-toggle";
 import MobileNav from "./mobile-nav";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignOutButton,
+  UserButton,
+} from "@clerk/nextjs";
 
 const TopNav = () => {
   return (
@@ -43,11 +50,20 @@ const TopNav = () => {
           <Menubar className="border-0 bg-transparent shadow-none p-0">
             <MenubarMenu>
               <MenubarTrigger className="text-base font-normal">
-                Dashboard
+                <Link prefetch={false} href="/dashboard">
+                  Dashboard
+                </Link>
               </MenubarTrigger>
             </MenubarMenu>
           </Menubar>
         </div>
+
+        <SignedOut>
+          <SignInButton />
+        </SignedOut>
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
 
         {/* Right: actions (always right) */}
         <div className="ml-2 flex items-center gap-1">

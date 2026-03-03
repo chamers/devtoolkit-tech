@@ -22,7 +22,7 @@ export default function ModeToggle() {
       aria-label="Toggle theme"
       onClick={() => setTheme(isLight ? "dark" : "light")}
     >
-      {isLight ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
     </Button>
   );
 }
