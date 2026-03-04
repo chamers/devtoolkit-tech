@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/context/theme";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ResourceProvider } from "@/context/resource";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,7 +38,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <ResourceProvider>{children}</ResourceProvider>
           </ThemeProvider>
         </body>
       </html>
