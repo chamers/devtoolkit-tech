@@ -1,5 +1,6 @@
 "use client";
 
+import { ResourceState } from "@/utils/types/resource";
 import React, {
   createContext,
   useContext,
@@ -7,37 +8,6 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-
-interface ResourceState {
-  id: string; // database id
-  userId: string; // who submitted it
-
-  name: string;
-  slug: string;
-  description: string;
-
-  website: string; // main URL
-  documentationUrl?: string; // optional
-  githubUrl?: string; // optional
-
-  category: string; // e.g. Frontend, Backend, DevOps
-  subCategory?: string;
-
-  pricing: "free" | "freemium" | "paid" | "open-source";
-
-  tags?: string[];
-
-  logo?: string; // image URL
-  screenshots?: string[];
-
-  headquarters?: string; // city/country (optional)
-  country?: string; // ISO code optional
-
-  published: boolean;
-
-  createdAt: Date | string;
-  updatedAt: Date | string;
-}
 
 const initialState: ResourceState = {
   id: "",
@@ -52,7 +22,7 @@ const initialState: ResourceState = {
   githubUrl: "",
 
   category: "",
-  subCategory: "",
+  //subCategory: "",
 
   pricing: "free",
 
@@ -75,6 +45,10 @@ interface ResourceContextType {
   setResource: React.Dispatch<React.SetStateAction<ResourceState>>;
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  handleChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => void;
+  handleSubmit: (e: React.FormEvent) => void;
 }
 
 const resourceContext = createContext<ResourceContextType | undefined>(
@@ -84,12 +58,35 @@ const resourceContext = createContext<ResourceContextType | undefined>(
 export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  //state to hold the resource being created/edited
   const [resource, setResource] = React.useState<ResourceState>(initialState);
   const [loading, setLoading] = React.useState<boolean>(false);
 
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setResource((prevResource: ResourceState) => {
+      const updateResource = { ...prevResource, [name]: value };
+      return updateResource;
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log(resource);
+  };
+
   return (
     <resourceContext.Provider
-      value={{ resource, setResource, loading, setLoading }}
+      value={{
+        resource,
+        setResource,
+        loading,
+        setLoading,
+        handleChange,
+        handleSubmit,
+      }}
     >
       {children}
     </resourceContext.Provider>
