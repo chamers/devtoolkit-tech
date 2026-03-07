@@ -1,5 +1,6 @@
 "use client";
 
+import PreviewCard from "@/components/resource/preview/preview-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useResource } from "@/context/resource";
@@ -156,93 +157,9 @@ const AddResourcePage = () => {
   return (
     <div className="flex h-screen flex-col lg:flex-row">
       {/* Preview */}
-      <div className="flex flex-col overflow-y-auto p-4 lg:order-last lg:w-1/2 lg:items-center lg:justify-center">
-        <div className="w-full max-w-xl rounded-lg border p-4">
-          <h2 className="mb-4 text-lg font-semibold">Preview</h2>
 
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs text-muted-foreground">Name</p>
-              <p>
-                {isHydrated
-                  ? resource.name || "Resource name"
-                  : "Resource name"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-muted-foreground">Slug</p>
-              <p>
-                {isHydrated
-                  ? resource.slug || "resource-slug"
-                  : "resource-slug"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-muted-foreground">Tagline</p>
-              <p>
-                {isHydrated
-                  ? resource.tagline || "Short summary of the resource"
-                  : "Short summary of the resource"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-muted-foreground">Category</p>
-              <p>
-                {isHydrated
-                  ? resource.category
-                    ? getCategoryLabel(resource.category)
-                    : "No category selected"
-                  : "No category selected"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-muted-foreground">Pricing</p>
-              <p>{isHydrated ? getPricingLabel(resource.pricing) : "Free"}</p>
-            </div>
-
-            <div>
-              <p className="text-xs text-muted-foreground">Description</p>
-              <p>
-                {isHydrated
-                  ? resource.description || "No description yet"
-                  : "No description yet"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-muted-foreground">Tags</p>
-              <p>
-                {isHydrated
-                  ? resource.tags.join(", ") || "No tags yet"
-                  : "No tags yet"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-muted-foreground">Alternatives</p>
-              <p>
-                {isHydrated
-                  ? resource.alternatives.join(", ") || "No alternatives yet"
-                  : "No alternatives yet"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-muted-foreground">Use Cases</p>
-              <p>
-                {isHydrated
-                  ? resource.useCases.length > 0
-                    ? resource.useCases.map(getUseCaseLabel).join(", ")
-                    : "No use cases yet"
-                  : "No use cases yet"}
-              </p>
-            </div>
-          </div>
-        </div>
+      <div className="flex flex-col overflow-y-auto p-4 lg:order-last lg:w-1/2 lg:items-center lg:justify-center min-h-88.5">
+        <PreviewCard resource={resource} />
       </div>
 
       {/* Form */}
