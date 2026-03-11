@@ -9,6 +9,7 @@ import {
   RESOURCE_USE_CASES,
 } from "@/utils/constants/resource-taxonomy";
 import type { ResourceFormState } from "@/utils/types/resource";
+import { Loader2, Send } from "lucide-react";
 
 interface InputField {
   name: keyof ResourceFormState;
@@ -240,14 +241,21 @@ const ResourceForm = ({
         </div>
       ))}
 
-      <Button type="submit" disabled={loading} className="my-5 min-w-[170px]">
+      <Button
+        type="submit"
+        disabled={loading}
+        className="my-5 min-w-[170px] flex items-center gap-2"
+      >
         {loading ? (
-          <span className="flex items-center gap-2">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          <>
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
             Submitting...
-          </span>
+          </>
         ) : (
-          submitLabel
+          <>
+            <Send className="h-4 w-4 mr-2" />
+            {submitLabel}
+          </>
         )}
       </Button>
     </form>

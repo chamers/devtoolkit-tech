@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/context/theme";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ResourceProvider } from "@/context/resource";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,7 +39,15 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <ResourceProvider>{children}</ResourceProvider>
+            <ResourceProvider>
+              {children}
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 4000,
+                }}
+              />
+            </ResourceProvider>
           </ThemeProvider>
         </body>
       </html>

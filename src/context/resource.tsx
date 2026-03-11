@@ -12,6 +12,8 @@ import {
 import { useClerk, useUser } from "@clerk/nextjs";
 import React, { createContext, useContext } from "react";
 import { saveResourceToDB } from "@/app/actions/resource";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 interface ResourceContextType {
   resource: ResourceFormState;
@@ -31,12 +33,6 @@ const ResourceContext = createContext<ResourceContextType | undefined>(
   undefined,
 );
 
-const commaSeparatedToArray = (value: string) =>
-  value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-
 const slugify = (value: string) =>
   value
     .toLowerCase()
@@ -55,7 +51,9 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isHydrated, setIsHydrated] = React.useState(false);
 
   const { openSignIn } = useClerk();
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn } = useUser();
+
+  const router = useRouter();
 
   React.useEffect(() => {
     const savedResource = localStorage.getItem("resource");
@@ -152,6 +150,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
     if (loading) return;
 
     if (!isSignedIn) {
+      toast.error("Please sign in to add a resource.");
       openSignIn();
       return;
     }
@@ -163,7 +162,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (!formValidation.success) {
         console.error("Form validation failed:", formValidation.error.issues);
-        alert("Please correct the form fields before submitting.");
+        toast.error("Please correct the form fields before submitting.");
         return;
       }
 
@@ -176,7 +175,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
           "Normalized input validation failed:",
           inputValidation.error.issues,
         );
-        alert("The resource data is invalid after normalization.");
+        toast.error("The resource data is invalid after normalization.");
         return;
       }
 
@@ -184,15 +183,18 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
 
       console.log("Validated resource payload:", payload);
 
+      const toastId = toast.loading("Saving resource...");
+
       await saveResourceToDB(payload);
+
+      toast.success("🎉 Resource saved successfully!", { id: toastId });
 
       setResource(defaultResourceFormState);
       localStorage.removeItem("resource");
-
-      alert("Resource saved successfully!");
+      router.push(`/dashboard/resource/edit/${payload.slug}`);
     } catch (error) {
-      console.error("Failed to save resource:", error);
-      alert("Something went wrong while saving the resource.");
+      console.error("❌ Failed to save resource:", error);
+      toast.error("Something went wrong while saving the resource.");
     } finally {
       setLoading(false);
     }
