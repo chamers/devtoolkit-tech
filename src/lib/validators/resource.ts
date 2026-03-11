@@ -16,27 +16,42 @@ const resourceLicenseValues = RESOURCE_LICENSES.map((item) => item.value);
 const resourceUseCaseValues = RESOURCE_USE_CASES.map((item) => item.value);
 const resourceEventTypeValues = RESOURCE_EVENT_TYPES.map((item) => item.value);
 
-const resourceCategoryEnum = z.enum(
-  resourceCategoryValues as [string, ...string[]],
-);
-const resourcePricingEnum = z.enum(
-  resourcePricingValues as [string, ...string[]],
-);
-const resourcePlatformEnum = z.enum(
-  resourcePlatformValues as [string, ...string[]],
-);
-const resourceLicenseEnum = z.enum(
-  resourceLicenseValues as [string, ...string[]],
-);
-const resourceUseCaseEnum = z.enum(
-  resourceUseCaseValues as [string, ...string[]],
-);
-const resourceEventTypeEnum = z.enum(
-  resourceEventTypeValues as [string, ...string[]],
+const includesString = (list: readonly string[], value: unknown): boolean =>
+  typeof value === "string" && list.includes(value);
+
+const resourceCategoryEnum = z.custom<ResourceInput["category"]>(
+  (value) => includesString(resourceCategoryValues, value),
+  { message: "Invalid category" },
 );
 
-const allowedUseCases = new Set(resourceUseCaseValues);
-const allowedPlatforms = new Set(resourcePlatformValues);
+const resourcePricingEnum = z.custom<ResourceInput["pricing"]>(
+  (value) => includesString(resourcePricingValues, value),
+  { message: "Invalid pricing" },
+);
+
+const resourcePlatformEnum = z.custom<ResourceInput["platforms"][number]>(
+  (value) => includesString(resourcePlatformValues, value),
+  { message: "Invalid platform" },
+);
+
+const resourceLicenseEnum = z.custom<NonNullable<ResourceInput["license"]>>(
+  (value) => includesString(resourceLicenseValues, value),
+  { message: "Invalid license" },
+);
+
+const resourceUseCaseEnum = z.custom<ResourceInput["useCases"][number]>(
+  (value) => includesString(resourceUseCaseValues, value),
+  { message: "Invalid use case" },
+);
+
+const resourceEventTypeEnum = z.custom<
+  ResourceInput["developerEvents"][number]["type"]
+>((value) => includesString(resourceEventTypeValues, value), {
+  message: "Invalid event type",
+});
+
+const allowedUseCases = new Set<string>(resourceUseCaseValues);
+const allowedPlatforms = new Set<string>(resourcePlatformValues);
 
 const optionalTrimmedString = z
   .string()
@@ -92,7 +107,7 @@ const stackFitSchema = z.object({
   ai: z.boolean().optional().default(false),
 });
 
-export const resourceInputSchema = z.object({
+export const resourceInputSchema: z.ZodType<ResourceInput> = z.object({
   name: z.string().trim().min(1, "Name is required"),
   slug: z.string().trim().min(1, "Slug is required"),
   tagline: z.string().trim().min(1, "Tagline is required"),
@@ -162,7 +177,7 @@ export const resourceInputSchema = z.object({
   published: z.boolean().default(false),
 });
 
-export const resourceFormSchema = z.object({
+export const resourceFormSchema: z.ZodType<ResourceFormState> = z.object({
   name: z.string().trim().min(1, "Name is required"),
   slug: z.string().trim().min(1, "Slug is required"),
   tagline: z.string().trim().min(1, "Tagline is required"),
@@ -319,10 +334,10 @@ export const normalizeResourceFormState = (
   };
 };
 
-export const validateResourceFormState = (values: ResourceFormState) => {
+export const validateResourceFormState = (values: unknown) => {
   return resourceFormSchema.safeParse(values);
 };
 
-export const validateResourceInput = (values: ResourceInput) => {
+export const validateResourceInput = (values: unknown) => {
   return resourceInputSchema.safeParse(values);
 };
