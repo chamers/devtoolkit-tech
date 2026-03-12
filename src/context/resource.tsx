@@ -3,6 +3,7 @@
 import {
   defaultResourceFormState,
   type ResourceFormState,
+  type Resource,
 } from "@/utils/types/resource";
 import {
   normalizeResourceFormState,
@@ -11,9 +12,13 @@ import {
 } from "@/lib/validators/resource";
 import { useClerk, useUser } from "@clerk/nextjs";
 import React, { createContext, useContext } from "react";
-import { saveResourceToDB } from "@/app/actions/resource";
+import {
+  saveResourceToDB,
+  getResourceFromDB,
+  getUserResourcesFromDB,
+} from "@/app/actions/resource";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface ResourceContextType {
   resource: ResourceFormState;
@@ -27,6 +32,8 @@ interface ResourceContextType {
     >,
   ) => void;
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  resources: Resource[];
+  setResources: React.Dispatch<React.SetStateAction<Resource[]>>;
 }
 
 const ResourceContext = createContext<ResourceContextType | undefined>(
@@ -49,11 +56,15 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
   );
   const [loading, setLoading] = React.useState(false);
   const [isHydrated, setIsHydrated] = React.useState(false);
+  const [resources, setResources] = React.useState<Resource[]>([]);
 
   const { openSignIn } = useClerk();
   const { isSignedIn } = useUser();
 
   const router = useRouter();
+  const pathname = usePathname();
+
+  const isDashboardPage = pathname === "/dashboard";
 
   React.useEffect(() => {
     const savedResource = localStorage.getItem("resource");
@@ -114,6 +125,12 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!isHydrated) return;
     localStorage.setItem("resource", JSON.stringify(resource));
   }, [resource, isHydrated]);
+
+  React.useEffect(() => {
+    if (isDashboardPage) {
+      getUserResources();
+    }
+  }, [isDashboardPage]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -185,16 +202,30 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const toastId = toast.loading("Saving resource...");
 
-      await saveResourceToDB(payload);
+      const savedResource = await saveResourceToDB(payload);
 
       toast.success("🎉 Resource saved successfully!", { id: toastId });
 
       setResource(defaultResourceFormState);
       localStorage.removeItem("resource");
-      router.push(`/dashboard/resource/edit/${payload.slug}`);
+      router.push(`/dashboard/resource/edit/${savedResource.slug}`);
     } catch (error) {
       console.error("❌ Failed to save resource:", error);
       toast.error("Something went wrong while saving the resource.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getUserResources = async () => {
+    setLoading(true);
+
+    try {
+      const userResources = await getUserResourcesFromDB();
+      setResources(userResources);
+    } catch (error) {
+      console.error("❌ Failed to fetch user resources:", error);
+      toast.error("Something went wrong while fetching your resources.");
     } finally {
       setLoading(false);
     }
@@ -210,6 +241,8 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
         isHydrated,
         handleChange,
         handleSubmit,
+        resources,
+        setResources,
       }}
     >
       {children}

@@ -27,20 +27,32 @@ import {
 } from "@/utils/constants/resource-taxonomy";
 import type { LucideIcon } from "lucide-react";
 import type {
+  Resource,
   ResourceFormState,
   ResourceUseCase,
 } from "@/utils/types/resource";
 
-const commaSeparatedToArray = (value: string) =>
-  value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+type PreviewResource = Resource | ResourceFormState;
 
-const PreviewCard = ({ resource }: { resource: ResourceFormState }) => {
-  const tags = commaSeparatedToArray(resource.tags);
-  const alternatives = commaSeparatedToArray(resource.alternatives);
-  const useCases = commaSeparatedToArray(resource.useCases);
+const toArray = (value: string | string[] | undefined | null) => {
+  if (Array.isArray(value)) {
+    return value.map((item) => item.trim()).filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
+const PreviewCard = ({ resource }: { resource: PreviewResource }) => {
+  const tags = toArray(resource.tags);
+  const alternatives = toArray(resource.alternatives);
+  const useCases = toArray(resource.useCases);
 
   const categoryText = resource.category
     ? getCategoryLabel(resource.category)

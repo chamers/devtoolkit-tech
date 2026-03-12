@@ -114,8 +114,9 @@ export interface ResourceInput extends ResourceBase {
 }
 
 export interface Resource extends ResourceInput {
-  id: string;
+  _id: string;
   userId: string;
+  userEmail?: string;
   createdAt: Date | string;
   updatedAt: Date | string;
 }

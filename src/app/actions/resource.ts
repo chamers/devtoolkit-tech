@@ -125,9 +125,62 @@ export const saveResourceToDB = async (data: ResourceInput) => {
     };
 
     const resource = await Resource.create(resourceToSave);
-    return JSON.parse(JSON.stringify(resource));
+
+    return {
+      ...resource.toObject(),
+      _id: resource._id.toString(),
+      createdAt: resource.createdAt?.toISOString?.() ?? resource.createdAt,
+      updatedAt: resource.updatedAt?.toISOString?.() ?? resource.updatedAt,
+    };
   } catch (error) {
     console.error("Error saving resource:", error);
+    throw error;
+  }
+};
+
+export const getUserResourcesFromDB = async () => {
+  try {
+    await db();
+
+    const user = await currentUser();
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    const resources = await Resource.find({ userId: user.id })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return resources.map((resource) => ({
+      ...resource,
+      _id: resource._id.toString(),
+      createdAt: resource.createdAt?.toISOString?.() ?? resource.createdAt,
+      updatedAt: resource.updatedAt?.toISOString?.() ?? resource.updatedAt,
+    }));
+  } catch (error) {
+    console.error("Error fetching user resources:", error);
+    throw error;
+  }
+};
+
+export const getResourceFromDB = async (_id: string) => {
+  try {
+    await db();
+
+    const resource = await Resource.findById(_id).lean();
+
+    if (!resource) {
+      throw new Error("Resource not found");
+    }
+
+    return {
+      ...resource,
+      _id: resource._id.toString(),
+      createdAt: resource.createdAt?.toISOString?.() ?? resource.createdAt,
+      updatedAt: resource.updatedAt?.toISOString?.() ?? resource.updatedAt,
+    };
+  } catch (error) {
+    console.error("Error fetching resource:", error);
     throw error;
   }
 };
