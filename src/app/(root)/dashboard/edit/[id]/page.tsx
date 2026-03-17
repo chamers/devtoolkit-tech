@@ -4,7 +4,7 @@ import PreviewCard from "@/components/resource/preview/preview-card";
 import ResourceForm from "@/components/resource/forms/resource-form";
 import { useResource } from "@/context/resource";
 
-const AddResourcePage = () => {
+const EditResourcePage = () => {
   const { resource, handleChange, handleSubmit, isHydrated, loading } =
     useResource();
 
@@ -26,20 +26,18 @@ const AddResourcePage = () => {
       </div>
 
       <div className="flex flex-col overflow-y-auto p-4 lg:order-first lg:w-1/2">
-        <h1 className="mb-4 text-xl font-semibold">
-          List your resource for free and help the community
-        </h1>
+        <h1 className="mb-4 text-xl font-semibold">Edit your resource</h1>
 
         <ResourceForm
           resource={resource}
           loading={loading}
           onChange={handleChange}
           onSubmit={handleSubmit}
-          submitLabel="Submit Resource"
+          submitLabel="Update Resource"
         />
       </div>
     </div>
   );
 };
 
-export default AddResourcePage;
+export default EditResourcePage;

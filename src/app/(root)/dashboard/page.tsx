@@ -6,23 +6,24 @@ import Link from "next/link";
 
 const Dashboard = () => {
   const { resources } = useResource();
+
   return (
     <div className="p-5">
-      <h1 className="text-2xl font-bold mb-5 text-center">Dashboard</h1>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {resources.map((resource, index) => (
+      <h1 className="mb-5 text-center text-2xl font-bold">Dashboard</h1>
+
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {resources.map((resource) => (
           <Link
-            key={index}
-            href={`/dashboard/resource/edit/${resource._id}`}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
+            key={resource._id}
+            href={`/dashboard/edit/${resource._id}`}
+            className="rounded-lg bg-white p-4 shadow-md transition-shadow hover:shadow-lg dark:bg-gray-800"
           >
-            <div>
-              <PreviewCard resource={resource}></PreviewCard>
-            </div>
+            <PreviewCard resource={resource} />
           </Link>
         ))}
       </div>
     </div>
   );
 };
+
 export default Dashboard;

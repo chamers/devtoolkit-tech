@@ -9,6 +9,7 @@ import MobileNav from "./mobile-nav";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { LayoutDashboard, LogIn, Plus } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
+import AddResourceButton from "../buttons/add-resource-button";
 
 const TopNav = async () => {
   const user = await currentUser();
@@ -47,18 +48,7 @@ const TopNav = async () => {
         {/* Desktop nav */}
         <div className="hidden md:block">
           <Menubar className="flex gap-2 border-0 bg-transparent p-0 shadow-none">
-            <MenubarMenu>
-              <MenubarTrigger asChild className="text-base font-normal">
-                <Link
-                  prefetch={false}
-                  href="/resource/add"
-                  className="flex items-center"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  <span>Add Resource</span>
-                </Link>
-              </MenubarTrigger>
-            </MenubarMenu>
+            <AddResourceButton />
 
             {user && (
               <MenubarMenu>

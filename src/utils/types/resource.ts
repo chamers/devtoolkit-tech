@@ -70,7 +70,11 @@ export interface ResourceBase {
   githubUrl?: string;
 
   tags: string[];
+  useCases: ResourceUseCase[];
   alternatives: string[];
+
+  platforms: ResourcePlatform[];
+  license?: ResourceLicense;
 
   logo?: string;
   screenshots: string[];
@@ -92,7 +96,7 @@ export interface ResourceBase {
 
 export interface ResourceFormState extends Omit<
   ResourceBase,
-  "tags" | "alternatives" | "screenshots" | "useCases" | "platforms"
+  "tags" | "alternatives" | "screenshots" | "useCases" | "platforms" | "license"
 > {
   category: ResourceCategory | "";
   pricing: ResourcePricing | "";

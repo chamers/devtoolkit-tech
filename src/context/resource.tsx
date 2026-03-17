@@ -1,5 +1,10 @@
 "use client";
 
+import React, { createContext, useContext } from "react";
+import { useClerk, useUser } from "@clerk/nextjs";
+import { useRouter, usePathname, useParams } from "next/navigation";
+import toast from "react-hot-toast";
+
 import {
   defaultResourceFormState,
   type ResourceFormState,
@@ -10,19 +15,18 @@ import {
   validateResourceFormState,
   validateResourceInput,
 } from "@/lib/validators/resource";
-import { useClerk, useUser } from "@clerk/nextjs";
-import React, { createContext, useContext } from "react";
 import {
   saveResourceToDB,
+  updateResourceInDB,
   getResourceFromDB,
   getUserResourcesFromDB,
 } from "@/app/actions/resource";
-import toast from "react-hot-toast";
-import { useRouter, usePathname } from "next/navigation";
 
 interface ResourceContextType {
   resource: ResourceFormState;
   setResource: React.Dispatch<React.SetStateAction<ResourceFormState>>;
+  initialState: ResourceFormState;
+  setInitialState: React.Dispatch<React.SetStateAction<ResourceFormState>>;
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isHydrated: boolean;
@@ -40,6 +44,8 @@ const ResourceContext = createContext<ResourceContextType | undefined>(
   undefined,
 );
 
+const LOCAL_STORAGE_KEY = "resource";
+
 const slugify = (value: string) =>
   value
     .toLowerCase()
@@ -48,10 +54,58 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+const mapResourceToFormState = (
+  input: Partial<ResourceFormState> | Partial<Resource>,
+): ResourceFormState => {
+  return {
+    ...defaultResourceFormState,
+    ...input,
+    tags: Array.isArray(input.tags)
+      ? input.tags.join(", ")
+      : (input.tags ?? ""),
+    useCases: Array.isArray(input.useCases)
+      ? input.useCases.join(", ")
+      : (input.useCases ?? ""),
+    alternatives: Array.isArray(input.alternatives)
+      ? input.alternatives.join(", ")
+      : (input.alternatives ?? ""),
+    platforms: Array.isArray(input.platforms)
+      ? input.platforms.join(", ")
+      : (input.platforms ?? ""),
+    screenshots: Array.isArray(input.screenshots)
+      ? input.screenshots.join(", ")
+      : (input.screenshots ?? ""),
+    comparisonTargets: Array.isArray(input.comparisonTargets)
+      ? input.comparisonTargets
+      : [],
+    developerEvents: Array.isArray(input.developerEvents)
+      ? input.developerEvents
+      : [],
+    communityRating: input.communityRating ?? {
+      average: 0,
+      count: 0,
+    },
+    githubStats: input.githubStats ?? {
+      stars: 0,
+      forks: 0,
+      issues: 0,
+      lastCommitDate: null,
+      repository: "",
+    },
+    stackFit: {
+      ...defaultResourceFormState.stackFit,
+      ...(input.stackFit ?? {}),
+    },
+  };
+};
+
 export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [resource, setResource] = React.useState<ResourceFormState>(
+    defaultResourceFormState,
+  );
+  const [initialState, setInitialState] = React.useState<ResourceFormState>(
     defaultResourceFormState,
   );
   const [loading, setLoading] = React.useState(false);
@@ -63,74 +117,98 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const router = useRouter();
   const pathname = usePathname();
+  const params = useParams<{ id?: string | string[] }>();
+
+  const idParam = params?.id;
+  const resourceId = typeof idParam === "string" ? idParam : undefined;
 
   const isDashboardPage = pathname === "/dashboard";
+  const isAddPage = pathname === "/resource/add";
+  const isEditPage = pathname.startsWith("/dashboard/edit/");
 
-  React.useEffect(() => {
-    const savedResource = localStorage.getItem("resource");
+  const getUserResources = React.useCallback(async () => {
+    setLoading(true);
 
-    if (savedResource) {
-      try {
-        const parsed = JSON.parse(savedResource);
-
-        setResource({
-          ...defaultResourceFormState,
-          ...parsed,
-          tags: Array.isArray(parsed.tags)
-            ? parsed.tags.join(", ")
-            : (parsed.tags ?? ""),
-          useCases: Array.isArray(parsed.useCases)
-            ? parsed.useCases.join(", ")
-            : (parsed.useCases ?? ""),
-          alternatives: Array.isArray(parsed.alternatives)
-            ? parsed.alternatives.join(", ")
-            : (parsed.alternatives ?? ""),
-          platforms: Array.isArray(parsed.platforms)
-            ? parsed.platforms.join(", ")
-            : (parsed.platforms ?? ""),
-          screenshots: Array.isArray(parsed.screenshots)
-            ? parsed.screenshots.join(", ")
-            : (parsed.screenshots ?? ""),
-          comparisonTargets: Array.isArray(parsed.comparisonTargets)
-            ? parsed.comparisonTargets
-            : [],
-          developerEvents: Array.isArray(parsed.developerEvents)
-            ? parsed.developerEvents
-            : [],
-          communityRating: parsed.communityRating ?? {
-            average: 0,
-            count: 0,
-          },
-          githubStats: parsed.githubStats ?? {
-            stars: 0,
-            forks: 0,
-            issues: 0,
-            lastCommitDate: null,
-            repository: "",
-          },
-          stackFit: {
-            ...defaultResourceFormState.stackFit,
-            ...(parsed.stackFit ?? {}),
-          },
-        });
-      } catch {
-        setResource(defaultResourceFormState);
-      }
+    try {
+      const userResources = await getUserResourcesFromDB();
+      setResources(userResources);
+    } catch (error) {
+      console.error("❌ Failed to fetch user resources:", error);
+      toast.error("Something went wrong while fetching your resources.");
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
-    setIsHydrated(true);
+  const getResource = React.useCallback(async (id: string) => {
+    try {
+      const fetchedResource = await getResourceFromDB(id);
+      const mappedResource = mapResourceToFormState(fetchedResource);
+
+      setResource(mappedResource);
+      setInitialState(mappedResource);
+    } catch (error) {
+      console.error("❌ Failed to fetch resource:", error);
+      toast.error("Something went wrong while fetching the resource.");
+    } finally {
+      setIsHydrated(true);
+    }
   }, []);
 
   React.useEffect(() => {
-    if (!isHydrated) return;
-    localStorage.setItem("resource", JSON.stringify(resource));
-  }, [resource, isHydrated]);
+    if (!isDashboardPage) return;
+    void getUserResources();
+  }, [isDashboardPage, getUserResources]);
 
   React.useEffect(() => {
-    if (isDashboardPage) {
-      getUserResources();
+    setIsHydrated(false);
+
+    if (isEditPage) {
+      if (resourceId) {
+        void getResource(resourceId);
+      } else {
+        setResource(defaultResourceFormState);
+        setInitialState(defaultResourceFormState);
+        setIsHydrated(true);
+      }
+      return;
     }
-  }, [isDashboardPage]);
+
+    if (isAddPage) {
+      try {
+        const savedResource = localStorage.getItem(LOCAL_STORAGE_KEY);
+
+        if (savedResource) {
+          const parsed = JSON.parse(savedResource);
+          const mappedResource = mapResourceToFormState(parsed);
+          setResource(mappedResource);
+          setInitialState(defaultResourceFormState);
+        } else {
+          setResource(defaultResourceFormState);
+          setInitialState(defaultResourceFormState);
+        }
+      } catch (error) {
+        console.error(
+          "❌ Failed to read resource draft from localStorage:",
+          error,
+        );
+        setResource(defaultResourceFormState);
+        setInitialState(defaultResourceFormState);
+      } finally {
+        setIsHydrated(true);
+      }
+      return;
+    }
+
+    setResource(defaultResourceFormState);
+    setInitialState(defaultResourceFormState);
+    setIsHydrated(true);
+  }, [isAddPage, isEditPage, resourceId, getResource]);
+
+  React.useEffect(() => {
+    if (!isHydrated || !isAddPage) return;
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(resource));
+  }, [resource, isHydrated, isAddPage]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -167,7 +245,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
     if (loading) return;
 
     if (!isSignedIn) {
-      toast.error("Please sign in to add a resource.");
+      toast.error("Please sign in to manage resources.");
       openSignIn();
       return;
     }
@@ -184,7 +262,6 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       const normalizedResource = normalizeResourceFormState(resource);
-
       const inputValidation = validateResourceInput(normalizedResource);
 
       if (!inputValidation.success) {
@@ -197,35 +274,34 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       const payload = inputValidation.data;
+      const toastId = toast.loading(
+        isEditPage ? "Updating resource..." : "Saving resource...",
+      );
 
-      console.log("Validated resource payload:", payload);
+      const savedResource =
+        isEditPage && resourceId
+          ? await updateResourceInDB(resourceId, payload)
+          : await saveResourceToDB(payload);
 
-      const toastId = toast.loading("Saving resource...");
+      toast.success(
+        isEditPage
+          ? "🎉 Resource updated successfully!"
+          : "🎉 Resource saved successfully!",
+        { id: toastId },
+      );
 
-      const savedResource = await saveResourceToDB(payload);
+      const mappedResource = mapResourceToFormState(savedResource);
+      setResource(mappedResource);
+      setInitialState(mappedResource);
 
-      toast.success("🎉 Resource saved successfully!", { id: toastId });
+      if (!isEditPage) {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+      }
 
-      setResource(defaultResourceFormState);
-      localStorage.removeItem("resource");
-      router.push(`/dashboard/resource/edit/${savedResource.slug}`);
+      router.push(`/dashboard/edit/${savedResource._id}`);
     } catch (error) {
       console.error("❌ Failed to save resource:", error);
       toast.error("Something went wrong while saving the resource.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getUserResources = async () => {
-    setLoading(true);
-
-    try {
-      const userResources = await getUserResourcesFromDB();
-      setResources(userResources);
-    } catch (error) {
-      console.error("❌ Failed to fetch user resources:", error);
-      toast.error("Something went wrong while fetching your resources.");
     } finally {
       setLoading(false);
     }
@@ -236,6 +312,8 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         resource,
         setResource,
+        initialState,
+        setInitialState,
         loading,
         setLoading,
         isHydrated,
