@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ImageUpload from "@/components/resource/uploads/image-upload-wrapper";
 import {
   RESOURCE_CATEGORIES,
   RESOURCE_PLATFORMS,
@@ -29,6 +31,8 @@ interface ResourceFormProps {
     >,
   ) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  onLogoUploaded: (url: string) => void;
+  onLogoRemoved?: () => void;
   submitLabel?: string;
 }
 
@@ -175,6 +179,8 @@ const ResourceForm = ({
   loading = false,
   onChange,
   onSubmit,
+  onLogoUploaded,
+  onLogoRemoved,
   submitLabel = "Submit Resource",
 }: ResourceFormProps) => {
   const getValue = (name: keyof ResourceFormState) => {
@@ -241,6 +247,90 @@ const ResourceForm = ({
         </div>
       ))}
 
+      <div className="w-full space-y-3 rounded-lg border p-4">
+        <div>
+          <label htmlFor="logoMode" className="mb-1 block text-xs">
+            Logo Source
+          </label>
+
+          <select
+            id="logoMode"
+            name="logoMode"
+            value={resource.logoMode}
+            onChange={onChange}
+            disabled={loading}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <option value="upload">Upload logo</option>
+            <option value="url">Use image URL</option>
+          </select>
+        </div>
+
+        {resource.logoMode === "upload" ? (
+          <div className="space-y-2">
+            <label className="block text-xs">Upload Logo</label>
+
+            <ImageUpload
+              multiple={false}
+              maxFiles={1}
+              accept="image/*"
+              buttonText={resource.logo ? "Replace logo" : "Upload logo"}
+              onUploaded={(urls) => {
+                if (urls[0]) {
+                  onLogoUploaded(urls[0]);
+                }
+              }}
+            />
+          </div>
+        ) : (
+          <div>
+            <label htmlFor="logo" className="mb-1 block text-xs">
+              Logo URL
+            </label>
+            <Input
+              id="logo"
+              name="logo"
+              type="url"
+              placeholder="https://example.com/logo.png"
+              value={resource.logo}
+              onChange={onChange}
+              disabled={loading}
+            />
+          </div>
+        )}
+
+        {resource.logo ? (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">
+              Current logo preview
+            </p>
+
+            <div className="relative h-20 w-20 overflow-hidden rounded-md border bg-muted">
+              <Image
+                src={resource.logo}
+                alt={resource.name || "Logo preview"}
+                fill
+                className="object-cover"
+              />
+            </div>
+
+            <p className="break-all text-xs text-muted-foreground">
+              {resource.logo}
+            </p>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={loading}
+              onClick={onLogoRemoved}
+            >
+              Remove logo
+            </Button>
+          </div>
+        ) : null}
+      </div>
+
       <Button
         type="submit"
         disabled={loading}
@@ -248,12 +338,12 @@ const ResourceForm = ({
       >
         {loading ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Submitting...
           </>
         ) : (
           <>
-            <Send className="h-4 w-4 mr-2" />
+            <Send className="mr-2 h-4 w-4" />
             {submitLabel}
           </>
         )}

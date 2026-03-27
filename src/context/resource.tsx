@@ -38,6 +38,9 @@ interface ResourceContextType {
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
   resources: Resource[];
   setResources: React.Dispatch<React.SetStateAction<Resource[]>>;
+  setLogoFromUpload: (url: string) => void;
+  removeLogo: () => void;
+  addScreenshotsFromUpload: (urls: string[]) => void;
 }
 
 const ResourceContext = createContext<ResourceContextType | undefined>(
@@ -57,9 +60,13 @@ const slugify = (value: string) =>
 const mapResourceToFormState = (
   input: Partial<ResourceFormState> | Partial<Resource>,
 ): ResourceFormState => {
+  const resolvedLogo = typeof input.logo === "string" ? input.logo : "";
+
   return {
     ...defaultResourceFormState,
     ...input,
+    logo: resolvedLogo,
+    logoMode: "logoMode" in input && input.logoMode ? input.logoMode : "upload",
     tags: Array.isArray(input.tags)
       ? input.tags.join(", ")
       : (input.tags ?? ""),
@@ -125,6 +132,37 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
   const isDashboardPage = pathname === "/dashboard";
   const isAddPage = pathname === "/resource/add";
   const isEditPage = pathname.startsWith("/dashboard/edit/");
+
+  const setLogoFromUpload = React.useCallback((url: string) => {
+    setResource((prev) => ({
+      ...prev,
+      logo: url,
+      logoMode: "upload",
+    }));
+  }, []);
+
+  const removeLogo = React.useCallback(() => {
+    setResource((prev) => ({
+      ...prev,
+      logo: "",
+    }));
+  }, []);
+
+  const addScreenshotsFromUpload = React.useCallback((urls: string[]) => {
+    setResource((prev) => {
+      const existing = prev.screenshots
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+      const merged = [...new Set([...existing, ...urls])];
+
+      return {
+        ...prev,
+        screenshots: merged.join(", "),
+      };
+    });
+  }, []);
 
   const getUserResources = React.useCallback(async () => {
     setLoading(true);
@@ -321,6 +359,9 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
         handleSubmit,
         resources,
         setResources,
+        setLogoFromUpload,
+        removeLogo,
+        addScreenshotsFromUpload,
       }}
     >
       {children}

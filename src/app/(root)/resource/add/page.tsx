@@ -5,8 +5,15 @@ import ResourceForm from "@/components/resource/forms/resource-form";
 import { useResource } from "@/context/resource";
 
 const AddResourcePage = () => {
-  const { resource, handleChange, handleSubmit, isHydrated, loading } =
-    useResource();
+  const {
+    resource,
+    handleChange,
+    handleSubmit,
+    isHydrated,
+    loading,
+    setLogoFromUpload,
+    removeLogo,
+  } = useResource();
 
   if (!isHydrated) {
     return (
@@ -35,7 +42,8 @@ const AddResourcePage = () => {
           loading={loading}
           onChange={handleChange}
           onSubmit={handleSubmit}
-          submitLabel="Submit Resource"
+          onLogoUploaded={setLogoFromUpload}
+          onLogoRemoved={removeLogo}
         />
       </div>
     </div>

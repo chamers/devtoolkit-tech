@@ -96,7 +96,13 @@ export interface ResourceBase {
 
 export interface ResourceFormState extends Omit<
   ResourceBase,
-  "tags" | "alternatives" | "screenshots" | "useCases" | "platforms" | "license"
+  | "tags"
+  | "alternatives"
+  | "screenshots"
+  | "useCases"
+  | "platforms"
+  | "license"
+  | "logo"
 > {
   category: ResourceCategory | "";
   pricing: ResourcePricing | "";
@@ -107,6 +113,9 @@ export interface ResourceFormState extends Omit<
   screenshots: string;
   useCases: string;
   platforms: string;
+
+  logo: string;
+  logoMode: "upload" | "url";
 }
 
 export interface ResourceInput extends ResourceBase {
@@ -145,6 +154,7 @@ export const defaultResourceFormState: ResourceFormState = {
   license: "",
 
   logo: "",
+  logoMode: "upload",
   screenshots: "",
 
   headquarters: "",

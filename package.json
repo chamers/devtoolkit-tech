@@ -10,9 +10,12 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.39.0",
+    "@google/genai": "^1.46.0",
+    "@imagekit/next": "^2.1.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.576.0",
+    "mime": "^4.1.0",
     "mongoose": "^9.2.4",
     "nanoid": "^5.1.6",
     "next": "16.1.6",
@@ -22,11 +25,12 @@
     "react-dom": "19.2.3",
     "react-hot-toast": "^2.6.0",
     "slugify": "^1.6.6",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.37",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",

@@ -59,6 +59,11 @@ const optionalTrimmedString = z
   .optional()
   .transform((value) => (value && value.length > 0 ? value : undefined));
 
+const optionalUrlString = z
+  .union([z.string().trim().url("Must be a valid URL"), z.literal("")])
+  .optional()
+  .transform((value) => (value ? value : undefined));
+
 const githubStatsSchema = z.object({
   stars: z.number().min(0).default(0),
   forks: z.number().min(0).default(0),
@@ -139,7 +144,7 @@ export const resourceInputSchema: z.ZodType<ResourceInput> = z.object({
     .optional()
     .transform((value) => (value ? value : undefined)),
 
-  logo: optionalTrimmedString,
+  logo: optionalUrlString,
   screenshots: z
     .array(z.string().trim().url("Screenshot must be a valid URL"))
     .default([]),
@@ -205,7 +210,14 @@ export const resourceFormSchema: z.ZodType<ResourceFormState> = z.object({
   platforms: z.string().default(""),
   license: z.union([resourceLicenseEnum, z.literal("")]).default(""),
 
-  logo: z.string().optional().default(""),
+  logo: z
+    .string()
+    .trim()
+    .default("")
+    .refine((value) => value === "" || isValidUrl(value), {
+      message: "Logo must be a valid URL",
+    }),
+  logoMode: z.union([z.literal("upload"), z.literal("url")]).default("upload"),
   screenshots: z.string().default(""),
 
   headquarters: z.string().optional().default(""),

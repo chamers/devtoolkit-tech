@@ -15,7 +15,7 @@ function normalizeOptionalString(value?: string) {
 }
 
 function normalizeStringArray(values: string[] = []) {
-  return values.map((item) => item.trim()).filter(Boolean);
+  return [...new Set(values.map((item) => item.trim()).filter(Boolean))];
 }
 
 async function generateUniqueSlug(name: string, excludeId?: string) {
