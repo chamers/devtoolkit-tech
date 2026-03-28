@@ -13,6 +13,7 @@ const EditResourcePage = () => {
     loading,
     setLogoFromUpload,
     removeLogo,
+    setResource,
   } = useResource();
 
   if (!isHydrated) {
@@ -42,6 +43,12 @@ const EditResourcePage = () => {
           onSubmit={handleSubmit}
           onLogoUploaded={setLogoFromUpload}
           onLogoRemoved={removeLogo}
+          onDescriptionGenerated={(description) =>
+            setResource((prev) => ({
+              ...prev,
+              description,
+            }))
+          }
         />
       </div>
     </div>

@@ -175,21 +175,21 @@ const PreviewCard = ({ resource }: { resource: PreviewResource }) => {
 
       <CardFooter className="mt-3 flex flex-wrap gap-2 border-t pt-3 opacity-80 transition-all duration-200 group-hover:-translate-y-px group-hover:opacity-100">
         {resource.website && (
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button type="button" variant="outline" size="sm" className="gap-2">
             <Globe className="h-4 w-4" />
             Website
           </Button>
         )}
 
         {resource.githubUrl && (
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button type="button" variant="outline" size="sm" className="gap-2">
             <Github className="h-4 w-4" />
             GitHub
           </Button>
         )}
 
         {resource.documentationUrl && (
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button type="button" variant="outline" size="sm" className="gap-2">
             <BookOpen className="h-4 w-4" />
             Docs
           </Button>

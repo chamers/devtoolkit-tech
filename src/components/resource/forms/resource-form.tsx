@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,8 @@ import {
   RESOURCE_USE_CASES,
 } from "@/utils/constants/resource-taxonomy";
 import type { ResourceFormState } from "@/utils/types/resource";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Sparkles } from "lucide-react";
+import { generateResourceDescriptionAction } from "@/app/actions/generate-resource-description-action";
 
 interface InputField {
   name: keyof ResourceFormState;
@@ -33,6 +35,7 @@ interface ResourceFormProps {
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onLogoUploaded: (url: string) => void;
   onLogoRemoved?: () => void;
+  onDescriptionGenerated: (description: string) => void;
   submitLabel?: string;
 }
 
@@ -181,8 +184,12 @@ const ResourceForm = ({
   onSubmit,
   onLogoUploaded,
   onLogoRemoved,
+  onDescriptionGenerated,
   submitLabel = "Submit Resource",
 }: ResourceFormProps) => {
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
   const getValue = (name: keyof ResourceFormState) => {
     const value = resource[name];
 
@@ -193,13 +200,73 @@ const ResourceForm = ({
     return (value ?? "") as string | number | boolean;
   };
 
+  const handleGenerateDescription = async () => {
+    setGenerateError(null);
+    setIsGeneratingDescription(true);
+
+    try {
+      const result = await generateResourceDescriptionAction({
+        name: resource.name,
+        tagline: resource.tagline,
+        website: resource.website,
+        documentationUrl: resource.documentationUrl,
+        githubUrl: resource.githubUrl,
+        category: resource.category,
+        pricing: resource.pricing,
+        platforms: resource.platforms,
+        license: resource.license,
+        useCases: resource.useCases,
+        tags: resource.tags,
+        alternatives: resource.alternatives,
+        githubStats: resource.githubStats,
+        stackFit: resource.stackFit,
+      });
+
+      if (!result.success) {
+        setGenerateError(result.error ?? "Failed to generate description.");
+        return;
+      }
+
+      onDescriptionGenerated(result.description);
+    } catch {
+      setGenerateError("Failed to generate description.");
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
+
   return (
     <form onSubmit={onSubmit} className="w-full space-y-3">
       {inputFields.map((item) => (
         <div key={item.name} className="w-full">
-          <label htmlFor={item.name} className="mb-1 block text-xs">
-            {item.label}
-          </label>
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <label htmlFor={item.name} className="block text-xs">
+              {item.label}
+            </label>
+
+            {item.name === "description" ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={loading || isGeneratingDescription}
+                onClick={handleGenerateDescription}
+                className="h-8"
+              >
+                {isGeneratingDescription ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate description
+                  </>
+                )}
+              </Button>
+            ) : null}
+          </div>
 
           {item.type === "textarea" ? (
             <textarea
@@ -209,7 +276,7 @@ const ResourceForm = ({
               required={item.required}
               onChange={onChange}
               value={String(getValue(item.name))}
-              disabled={loading}
+              disabled={loading || isGeneratingDescription}
               className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
             />
           ) : item.type === "select" ? (
@@ -219,7 +286,7 @@ const ResourceForm = ({
               required={item.required}
               onChange={onChange}
               value={String(getValue(item.name))}
-              disabled={loading}
+              disabled={loading || isGeneratingDescription}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
             >
               <option value="" disabled>
@@ -241,9 +308,13 @@ const ResourceForm = ({
               required={item.required}
               onChange={onChange}
               value={String(getValue(item.name))}
-              disabled={loading}
+              disabled={loading || isGeneratingDescription}
             />
           )}
+
+          {item.name === "description" && generateError ? (
+            <p className="mt-2 text-xs text-destructive">{generateError}</p>
+          ) : null}
         </div>
       ))}
 
@@ -258,7 +329,7 @@ const ResourceForm = ({
             name="logoMode"
             value={resource.logoMode}
             onChange={onChange}
-            disabled={loading}
+            disabled={loading || isGeneratingDescription}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
             <option value="upload">Upload logo</option>
@@ -294,7 +365,7 @@ const ResourceForm = ({
               placeholder="https://example.com/logo.png"
               value={resource.logo}
               onChange={onChange}
-              disabled={loading}
+              disabled={loading || isGeneratingDescription}
             />
           </div>
         )}
@@ -322,7 +393,7 @@ const ResourceForm = ({
               type="button"
               variant="outline"
               size="sm"
-              disabled={loading}
+              disabled={loading || isGeneratingDescription}
               onClick={onLogoRemoved}
             >
               Remove logo
@@ -333,7 +404,7 @@ const ResourceForm = ({
 
       <Button
         type="submit"
-        disabled={loading}
+        disabled={loading || isGeneratingDescription}
         className="my-5 min-w-[170px] flex items-center gap-2"
       >
         {loading ? (
