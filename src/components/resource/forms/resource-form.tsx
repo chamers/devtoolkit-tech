@@ -14,6 +14,7 @@ import {
 import type { ResourceFormState } from "@/utils/types/resource";
 import { Loader2, Send, Sparkles } from "lucide-react";
 import { generateResourceDescriptionAction } from "@/app/actions/generate-resource-description-action";
+import { generateResourceTaglineAction } from "@/app/actions/generate-resource-tagline-action";
 
 interface InputField {
   name: keyof ResourceFormState;
@@ -36,6 +37,7 @@ interface ResourceFormProps {
   onLogoUploaded: (url: string) => void;
   onLogoRemoved?: () => void;
   onDescriptionGenerated: (description: string) => void;
+  onTaglineGenerated: (tagline: string) => void;
   submitLabel?: string;
 }
 
@@ -185,10 +187,15 @@ const ResourceForm = ({
   onLogoUploaded,
   onLogoRemoved,
   onDescriptionGenerated,
+  onTaglineGenerated,
   submitLabel = "Submit Resource",
 }: ResourceFormProps) => {
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
-  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [isGeneratingTagline, setIsGeneratingTagline] = useState(false);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [taglineError, setTaglineError] = useState<string | null>(null);
+
+  const isGenerating = isGeneratingDescription || isGeneratingTagline;
 
   const getValue = (name: keyof ResourceFormState) => {
     const value = resource[name];
@@ -201,7 +208,7 @@ const ResourceForm = ({
   };
 
   const handleGenerateDescription = async () => {
-    setGenerateError(null);
+    setDescriptionError(null);
     setIsGeneratingDescription(true);
 
     try {
@@ -223,15 +230,50 @@ const ResourceForm = ({
       });
 
       if (!result.success) {
-        setGenerateError(result.error ?? "Failed to generate description.");
+        setDescriptionError(result.error ?? "Failed to generate description.");
         return;
       }
 
       onDescriptionGenerated(result.description);
     } catch {
-      setGenerateError("Failed to generate description.");
+      setDescriptionError("Failed to generate description.");
     } finally {
       setIsGeneratingDescription(false);
+    }
+  };
+
+  const handleGenerateTagline = async () => {
+    setTaglineError(null);
+    setIsGeneratingTagline(true);
+
+    try {
+      const result = await generateResourceTaglineAction({
+        name: resource.name,
+        description: resource.description,
+        website: resource.website,
+        documentationUrl: resource.documentationUrl,
+        githubUrl: resource.githubUrl,
+        category: resource.category,
+        pricing: resource.pricing,
+        platforms: resource.platforms,
+        license: resource.license,
+        useCases: resource.useCases,
+        tags: resource.tags,
+        alternatives: resource.alternatives,
+        githubStats: resource.githubStats,
+        stackFit: resource.stackFit,
+      });
+
+      if (!result.success) {
+        setTaglineError(result.error ?? "Failed to generate tagline.");
+        return;
+      }
+
+      onTaglineGenerated(result.tagline);
+    } catch {
+      setTaglineError("Failed to generate tagline.");
+    } finally {
+      setIsGeneratingTagline(false);
     }
   };
 
@@ -244,12 +286,35 @@ const ResourceForm = ({
               {item.label}
             </label>
 
+            {item.name === "tagline" ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={loading || isGenerating}
+                onClick={handleGenerateTagline}
+                className="h-8"
+              >
+                {isGeneratingTagline ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate tagline
+                  </>
+                )}
+              </Button>
+            ) : null}
+
             {item.name === "description" ? (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={loading || isGeneratingDescription}
+                disabled={loading || isGenerating}
                 onClick={handleGenerateDescription}
                 className="h-8"
               >
@@ -276,7 +341,7 @@ const ResourceForm = ({
               required={item.required}
               onChange={onChange}
               value={String(getValue(item.name))}
-              disabled={loading || isGeneratingDescription}
+              disabled={loading || isGenerating}
               className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
             />
           ) : item.type === "select" ? (
@@ -286,7 +351,7 @@ const ResourceForm = ({
               required={item.required}
               onChange={onChange}
               value={String(getValue(item.name))}
-              disabled={loading || isGeneratingDescription}
+              disabled={loading || isGenerating}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
             >
               <option value="" disabled>
@@ -308,12 +373,16 @@ const ResourceForm = ({
               required={item.required}
               onChange={onChange}
               value={String(getValue(item.name))}
-              disabled={loading || isGeneratingDescription}
+              disabled={loading || isGenerating}
             />
           )}
 
-          {item.name === "description" && generateError ? (
-            <p className="mt-2 text-xs text-destructive">{generateError}</p>
+          {item.name === "tagline" && taglineError ? (
+            <p className="mt-2 text-xs text-destructive">{taglineError}</p>
+          ) : null}
+
+          {item.name === "description" && descriptionError ? (
+            <p className="mt-2 text-xs text-destructive">{descriptionError}</p>
           ) : null}
         </div>
       ))}
@@ -329,7 +398,7 @@ const ResourceForm = ({
             name="logoMode"
             value={resource.logoMode}
             onChange={onChange}
-            disabled={loading || isGeneratingDescription}
+            disabled={loading || isGenerating}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
             <option value="upload">Upload logo</option>
@@ -365,7 +434,7 @@ const ResourceForm = ({
               placeholder="https://example.com/logo.png"
               value={resource.logo}
               onChange={onChange}
-              disabled={loading || isGeneratingDescription}
+              disabled={loading || isGenerating}
             />
           </div>
         )}
@@ -393,7 +462,7 @@ const ResourceForm = ({
               type="button"
               variant="outline"
               size="sm"
-              disabled={loading || isGeneratingDescription}
+              disabled={loading || isGenerating}
               onClick={onLogoRemoved}
             >
               Remove logo
@@ -404,7 +473,7 @@ const ResourceForm = ({
 
       <Button
         type="submit"
-        disabled={loading || isGeneratingDescription}
+        disabled={loading || isGenerating}
         className="my-5 min-w-[170px] flex items-center gap-2"
       >
         {loading ? (

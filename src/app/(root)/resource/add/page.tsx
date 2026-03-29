@@ -51,6 +51,12 @@ const AddResourcePage = () => {
               description,
             }))
           }
+          onTaglineGenerated={(tagline) =>
+            setResource((prev) => ({
+              ...prev,
+              tagline,
+            }))
+          }
         />
       </div>
     </div>
