@@ -26,31 +26,28 @@ import {
   getUseCaseLabel,
 } from "@/utils/constants/resource-taxonomy";
 import type { LucideIcon } from "lucide-react";
+
 import type {
-  ResourceFormState,
+  ResourceCategory,
+  ResourcePricing,
   ResourceUseCase,
 } from "@/utils/types/resource";
-import type { SerializedResource } from "@/app/actions/resource";
 
-type PreviewResource =
-  | Pick<
-      SerializedResource,
-      | "_id"
-      | "name"
-      | "slug"
-      | "tagline"
-      | "description"
-      | "website"
-      | "documentationUrl"
-      | "githubUrl"
-      | "category"
-      | "pricing"
-      | "tags"
-      | "useCases"
-      | "alternatives"
-      | "logo"
-    >
-  | ResourceFormState;
+type PreviewResource = {
+  _id?: string;
+  name?: string;
+  tagline?: string;
+  description?: string;
+  website?: string;
+  documentationUrl?: string;
+  githubUrl?: string;
+  category?: ResourceCategory;
+  pricing?: ResourcePricing;
+  tags?: string | string[];
+  useCases?: string | ResourceUseCase[];
+  alternatives?: string | string[];
+  logo?: string;
+};
 
 const toArray = (value: string | string[] | undefined | null) => {
   if (Array.isArray(value)) {
@@ -73,11 +70,11 @@ const PreviewCard = ({ resource }: { resource: PreviewResource }) => {
   const useCases = toArray(resource.useCases);
 
   const categoryText = resource.category
-    ? getCategoryLabel(resource.category)
+    ? getCategoryLabel(resource.category as never)
     : "No category";
 
   const pricingText = resource.pricing
-    ? getPricingLabel(resource.pricing)
+    ? getPricingLabel(resource.pricing as never)
     : "Free";
 
   const taglineText = resource.tagline || "Short summary of the resource";

@@ -195,6 +195,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const getResource = React.useCallback(async (id: string) => {
+    setLoading(true);
     setError(null);
 
     try {
@@ -218,6 +219,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
       setResource(defaultResourceFormState);
       setInitialState(defaultResourceFormState);
     } finally {
+      setLoading(false);
       setIsHydrated(true);
     }
   }, []);
