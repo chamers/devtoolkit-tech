@@ -57,6 +57,15 @@ const AddResourcePage = () => {
               tagline,
             }))
           }
+          onMetadataGenerated={(data) =>
+            setResource((prev) => ({
+              ...prev,
+              tags: data.tags,
+              alternatives: data.alternatives,
+              useCases: data.useCases,
+              platforms: data.platforms,
+            }))
+          }
         />
       </div>
     </div>

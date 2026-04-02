@@ -20,6 +20,7 @@ import {
   updateResourceInDB,
   getResourceFromDB,
   getUserResourcesFromDB,
+  setPublishedStatusInDB,
 } from "@/app/actions/resource";
 
 interface ResourceContextType {
@@ -30,6 +31,8 @@ interface ResourceContextType {
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isHydrated: boolean;
+  error: string | null;
+  setError: React.Dispatch<React.SetStateAction<string | null>>;
   handleChange: (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -41,6 +44,7 @@ interface ResourceContextType {
   setLogoFromUpload: (url: string) => void;
   removeLogo: () => void;
   addScreenshotsFromUpload: (urls: string[]) => void;
+  setPublishedStatus: (id: string, published: boolean) => Promise<void>;
 }
 
 const ResourceContext = createContext<ResourceContextType | undefined>(
@@ -118,6 +122,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = React.useState(false);
   const [isHydrated, setIsHydrated] = React.useState(false);
   const [resources, setResources] = React.useState<Resource[]>([]);
+  const [error, setError] = React.useState<string | null>(null);
 
   const { openSignIn } = useClerk();
   const { isSignedIn } = useUser();
@@ -166,32 +171,99 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const getUserResources = React.useCallback(async () => {
     setLoading(true);
+    setError(null);
 
     try {
-      const userResources = await getUserResourcesFromDB();
-      setResources(userResources);
+      const result = await getUserResourcesFromDB();
+
+      if (!result.ok) {
+        setError(result.error);
+        toast.error(result.error);
+        setResources([]);
+        return;
+      }
+
+      setResources(result.data as Resource[]);
     } catch (error) {
       console.error("❌ Failed to fetch user resources:", error);
+      setError("Something went wrong while fetching your resources.");
       toast.error("Something went wrong while fetching your resources.");
+      setResources([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
   const getResource = React.useCallback(async (id: string) => {
-    try {
-      const fetchedResource = await getResourceFromDB(id);
-      const mappedResource = mapResourceToFormState(fetchedResource);
+    setError(null);
 
+    try {
+      const result = await getResourceFromDB(id);
+
+      if (!result.ok) {
+        setError(result.error);
+        toast.error(result.error);
+        setResource(defaultResourceFormState);
+        setInitialState(defaultResourceFormState);
+        return;
+      }
+
+      const mappedResource = mapResourceToFormState(result.data);
       setResource(mappedResource);
       setInitialState(mappedResource);
     } catch (error) {
       console.error("❌ Failed to fetch resource:", error);
+      setError("Something went wrong while fetching the resource.");
       toast.error("Something went wrong while fetching the resource.");
+      setResource(defaultResourceFormState);
+      setInitialState(defaultResourceFormState);
     } finally {
       setIsHydrated(true);
     }
   }, []);
+
+  const setPublishedStatus = React.useCallback(
+    async (id: string, published: boolean) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const result = await setPublishedStatusInDB(id, published);
+
+        if (!result.ok) {
+          setError(result.error);
+          toast.error(result.error);
+          return;
+        }
+
+        const updatedResource = mapResourceToFormState(result.data);
+
+        setResources((prev) =>
+          prev.map((item) =>
+            item._id === result.data._id ? (result.data as Resource) : item,
+          ),
+        );
+
+        if (resourceId === result.data._id) {
+          setResource(updatedResource);
+          setInitialState(updatedResource);
+        }
+
+        toast.success(
+          published
+            ? "Resource published successfully."
+            : "Resource unpublished successfully.",
+        );
+      } catch (error) {
+        console.error("❌ Failed to update published status:", error);
+        setError("Something went wrong while updating publish status.");
+        toast.error("Something went wrong while updating publish status.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [resourceId],
+  );
 
   React.useEffect(() => {
     if (!isDashboardPage) return;
@@ -200,6 +272,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
 
   React.useEffect(() => {
     setIsHydrated(false);
+    setError(null);
 
     if (isEditPage) {
       if (resourceId) {
@@ -230,6 +303,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
           "❌ Failed to read resource draft from localStorage:",
           error,
         );
+        setError("Failed to restore your saved draft.");
         setResource(defaultResourceFormState);
         setInitialState(defaultResourceFormState);
       } finally {
@@ -290,11 +364,13 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       setLoading(true);
+      setError(null);
 
       const formValidation = validateResourceFormState(resource);
 
       if (!formValidation.success) {
         console.error("Form validation failed:", formValidation.error.issues);
+        setError("Please correct the form fields before submitting.");
         toast.error("Please correct the form fields before submitting.");
         return;
       }
@@ -307,6 +383,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
           "Normalized input validation failed:",
           inputValidation.error.issues,
         );
+        setError("The resource data is invalid after normalization.");
         toast.error("The resource data is invalid after normalization.");
         return;
       }
@@ -316,10 +393,16 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
         isEditPage ? "Updating resource..." : "Saving resource...",
       );
 
-      const savedResource =
+      const result =
         isEditPage && resourceId
           ? await updateResourceInDB(resourceId, payload)
           : await saveResourceToDB(payload);
+
+      if (!result.ok) {
+        setError(result.error);
+        toast.error(result.error, { id: toastId });
+        return;
+      }
 
       toast.success(
         isEditPage
@@ -328,7 +411,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
         { id: toastId },
       );
 
-      const mappedResource = mapResourceToFormState(savedResource);
+      const mappedResource = mapResourceToFormState(result.data);
       setResource(mappedResource);
       setInitialState(mappedResource);
 
@@ -336,9 +419,10 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
         localStorage.removeItem(LOCAL_STORAGE_KEY);
       }
 
-      router.push(`/dashboard/edit/${savedResource._id}`);
+      router.push(`/dashboard/edit/${result.data._id}`);
     } catch (error) {
       console.error("❌ Failed to save resource:", error);
+      setError("Something went wrong while saving the resource.");
       toast.error("Something went wrong while saving the resource.");
     } finally {
       setLoading(false);
@@ -355,6 +439,8 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
         loading,
         setLoading,
         isHydrated,
+        error,
+        setError,
         handleChange,
         handleSubmit,
         resources,
@@ -362,6 +448,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
         setLogoFromUpload,
         removeLogo,
         addScreenshotsFromUpload,
+        setPublishedStatus,
       }}
     >
       {children}

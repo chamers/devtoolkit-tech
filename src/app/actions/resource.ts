@@ -8,6 +8,32 @@ import db from "@/utils/db";
 import Resource from "@/models/resource";
 import type { ResourceInput } from "@/utils/types/resource";
 
+type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
+
+type ResourcePayload = ReturnType<typeof buildResourcePayload>;
+
+type ResourceDocumentLike = ResourcePayload & {
+  _id: mongoose.Types.ObjectId | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type SerializedResource = ResourcePayload & {
+  _id: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PaginatedResources = {
+  resources: SerializedResource[];
+  totalCount: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+const DEFAULT_RESOURCE_PAGE_SIZE = 12;
+
 function normalizeOptionalString(value?: string) {
   if (!value) return undefined;
   const trimmed = value.trim();
@@ -125,55 +151,98 @@ function buildResourcePayload(
   };
 }
 
-function serializeResource(resource: any) {
+function serializeResource(resource: ResourceDocumentLike): SerializedResource {
   return {
     ...resource,
     _id: resource._id.toString(),
-    createdAt: resource.createdAt?.toISOString?.() ?? resource.createdAt,
-    updatedAt: resource.updatedAt?.toISOString?.() ?? resource.updatedAt,
+    createdAt:
+      resource.createdAt instanceof Date
+        ? resource.createdAt.toISOString()
+        : (resource.createdAt ?? ""),
+    updatedAt:
+      resource.updatedAt instanceof Date
+        ? resource.updatedAt.toISOString()
+        : (resource.updatedAt ?? ""),
   };
 }
 
-export const saveResourceToDB = async (data: ResourceInput) => {
+async function getAuthenticatedUser() {
+  const user = await currentUser();
+
+  if (!user) {
+    return { ok: false as const, error: "You need to sign in first." };
+  }
+
+  return { ok: true as const, data: user };
+}
+
+function buildOwnerQuery(user: Awaited<ReturnType<typeof currentUser>>) {
+  const userEmail = user?.emailAddresses[0]?.emailAddress;
+
+  return {
+    $or: [{ userId: user?.id }, ...(userEmail ? [{ userEmail }] : [])],
+  };
+}
+
+export const saveResourceToDB = async (
+  data: ResourceInput,
+): Promise<ActionResult<SerializedResource>> => {
   try {
     await db();
 
-    const user = await currentUser();
-    if (!user) {
-      throw new Error("User not authenticated");
+    const userResult = await getAuthenticatedUser();
+    if (!userResult.ok) {
+      return userResult;
     }
 
+    const user = userResult.data;
     const slug = await generateUniqueSlug(data.name);
     const resourceToSave = buildResourcePayload(data, user, slug);
 
     const resource = await Resource.create(resourceToSave);
-    return serializeResource(resource.toObject());
+
+    return {
+      ok: true,
+      data: serializeResource(resource.toObject()),
+    };
   } catch (error) {
     console.error("Error saving resource:", error);
-    throw error;
+    return {
+      ok: false,
+      error: "Something went wrong while saving the resource.",
+    };
   }
 };
 
-export const updateResourceInDB = async (_id: string, data: ResourceInput) => {
+export const updateResourceInDB = async (
+  _id: string,
+  data: ResourceInput,
+): Promise<ActionResult<SerializedResource>> => {
   try {
     await db();
 
-    const user = await currentUser();
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-
     if (!_id || !mongoose.Types.ObjectId.isValid(_id)) {
-      throw new Error("Invalid resource id");
+      return { ok: false, error: "Invalid resource id." };
     }
 
-    const existingResource = await Resource.findById(_id);
+    const userResult = await getAuthenticatedUser();
+    if (!userResult.ok) {
+      return userResult;
+    }
+
+    const user = userResult.data;
+    const ownerQuery = buildOwnerQuery(user);
+
+    const existingResource = await Resource.findOne({
+      _id,
+      ...ownerQuery,
+    });
+
     if (!existingResource) {
-      throw new Error("Resource not found");
-    }
-
-    if (existingResource.userId !== user.id) {
-      throw new Error("Not authorized to update this resource");
+      return {
+        ok: false,
+        error: "You are not allowed to update this resource.",
+      };
     }
 
     const slug =
@@ -183,8 +252,11 @@ export const updateResourceInDB = async (_id: string, data: ResourceInput) => {
 
     const updatePayload = buildResourcePayload(data, user, slug);
 
-    const updatedResource = await Resource.findByIdAndUpdate(
-      _id,
+    const updatedResource = await Resource.findOneAndUpdate(
+      {
+        _id,
+        ...ownerQuery,
+      },
       updatePayload,
       {
         new: true,
@@ -193,62 +265,190 @@ export const updateResourceInDB = async (_id: string, data: ResourceInput) => {
     ).lean();
 
     if (!updatedResource) {
-      throw new Error("Resource not found after update");
+      return {
+        ok: false,
+        error: "Resource could not be updated.",
+      };
     }
 
-    return serializeResource(updatedResource);
+    return {
+      ok: true,
+      data: serializeResource(updatedResource),
+    };
   } catch (error) {
     console.error("Error updating resource:", error);
-    throw error;
+    return {
+      ok: false,
+      error: "Something went wrong while updating the resource.",
+    };
   }
 };
 
-export const getUserResourcesFromDB = async () => {
+export const getUserResourcesFromDB = async (): Promise<
+  ActionResult<SerializedResource[]>
+> => {
   try {
     await db();
 
-    const user = await currentUser();
-    if (!user) {
-      throw new Error("User not authenticated");
+    const userResult = await getAuthenticatedUser();
+    if (!userResult.ok) {
+      return userResult;
     }
 
-    const resources = await Resource.find({ userId: user.id })
+    const user = userResult.data;
+
+    const resources = await Resource.find({
+      ...buildOwnerQuery(user),
+    })
       .sort({ createdAt: -1 })
       .lean();
 
-    return resources.map(serializeResource);
+    return {
+      ok: true,
+      data: resources.map(serializeResource),
+    };
   } catch (error) {
     console.error("Error fetching user resources:", error);
-    throw error;
+    return {
+      ok: false,
+      error: "Something went wrong while fetching your resources.",
+    };
   }
 };
 
-export const getResourceFromDB = async (_id: string) => {
+export const getResourceFromDB = async (
+  _id: string,
+): Promise<ActionResult<SerializedResource>> => {
   try {
     await db();
 
-    const user = await currentUser();
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-
     if (!_id || !mongoose.Types.ObjectId.isValid(_id)) {
-      throw new Error("Invalid resource id");
+      return { ok: false, error: "Invalid resource id." };
     }
 
-    const resource = await Resource.findById(_id).lean();
+    const userResult = await getAuthenticatedUser();
+    if (!userResult.ok) {
+      return userResult;
+    }
+
+    const user = userResult.data;
+
+    const resource = await Resource.findOne({
+      _id,
+      ...buildOwnerQuery(user),
+    }).lean();
 
     if (!resource) {
-      throw new Error("Resource not found");
+      return {
+        ok: false,
+        error:
+          "You are not allowed to view this resource, or it does not exist.",
+      };
     }
 
-    if (resource.userId !== user.id) {
-      throw new Error("Not authorized to view this resource");
-    }
-
-    return serializeResource(resource);
+    return {
+      ok: true,
+      data: serializeResource(resource),
+    };
   } catch (error) {
     console.error("Error fetching resource:", error);
-    throw error;
+    return {
+      ok: false,
+      error: "Something went wrong while fetching the resource.",
+    };
+  }
+};
+
+export const setPublishedStatusInDB = async (
+  _id: string,
+  published: boolean,
+): Promise<ActionResult<SerializedResource>> => {
+  try {
+    await db();
+
+    if (!_id || !mongoose.Types.ObjectId.isValid(_id)) {
+      return { ok: false, error: "Invalid resource id." };
+    }
+
+    const userResult = await getAuthenticatedUser();
+    if (!userResult.ok) {
+      return userResult;
+    }
+
+    const user = userResult.data;
+    const ownerQuery = buildOwnerQuery(user);
+
+    const updatedResource = await Resource.findOneAndUpdate(
+      {
+        _id,
+        ...ownerQuery,
+      },
+      {
+        $set: { published },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    ).lean();
+
+    if (!updatedResource) {
+      return {
+        ok: false,
+        error: "You are not allowed to update this resource.",
+      };
+    }
+
+    return {
+      ok: true,
+      data: serializeResource(updatedResource),
+    };
+  } catch (error) {
+    console.error("Error setting published status:", error);
+    return {
+      ok: false,
+      error: "Something went wrong while updating publish status.",
+    };
+  }
+};
+
+export const getLatestResourcesFromDB = async (
+  page = 1,
+  limit = DEFAULT_RESOURCE_PAGE_SIZE,
+): Promise<ActionResult<PaginatedResources>> => {
+  try {
+    await db();
+
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.max(1, limit);
+
+    const query = { published: true };
+
+    const [resources, totalCount] = await Promise.all([
+      Resource.find(query)
+        .sort({ createdAt: -1 })
+        .skip((safePage - 1) * safeLimit)
+        .limit(safeLimit)
+        .lean(),
+      Resource.countDocuments(query),
+    ]);
+
+    return {
+      ok: true,
+      data: {
+        resources: resources.map(serializeResource),
+        totalCount,
+        page: safePage,
+        limit: safeLimit,
+        totalPages: Math.ceil(totalCount / safeLimit),
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching latest resources:", error);
+
+    return {
+      ok: false,
+      error: "Something went wrong while fetching the latest resources.",
+    };
   }
 };

@@ -67,7 +67,7 @@ const toArray = (value: string | string[] | undefined | null) => {
   return [];
 };
 
-const PreviewCard = ({ resource }: { resource: PreviewResource }) => {
+const ResourceCard = ({ resource }: { resource: PreviewResource }) => {
   const tags = toArray(resource.tags);
   const alternatives = toArray(resource.alternatives);
   const useCases = toArray(resource.useCases);
@@ -217,7 +217,7 @@ const PreviewCard = ({ resource }: { resource: PreviewResource }) => {
   );
 };
 
-export default PreviewCard;
+export default ResourceCard;
 
 function InfoItem({
   icon: Icon,

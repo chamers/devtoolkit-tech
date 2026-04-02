@@ -15,6 +15,7 @@ import type { ResourceFormState } from "@/utils/types/resource";
 import { Loader2, Send, Sparkles } from "lucide-react";
 import { generateResourceDescriptionAction } from "@/app/actions/generate-resource-description-action";
 import { generateResourceTaglineAction } from "@/app/actions/generate-resource-tagline-action";
+import { generateResourceMetadataAction } from "@/app/actions/generate-resource-metadata-action";
 
 interface InputField {
   name: keyof ResourceFormState;
@@ -38,7 +39,14 @@ interface ResourceFormProps {
   onLogoRemoved?: () => void;
   onDescriptionGenerated: (description: string) => void;
   onTaglineGenerated: (tagline: string) => void;
+  onMetadataGenerated: (data: {
+    tags: string;
+    alternatives: string;
+    useCases: string;
+    platforms: string;
+  }) => void;
   submitLabel?: string;
+  footerActions?: React.ReactNode;
 }
 
 const categoryOptions = RESOURCE_CATEGORIES.map((item) => ({
@@ -188,14 +196,20 @@ const ResourceForm = ({
   onLogoRemoved,
   onDescriptionGenerated,
   onTaglineGenerated,
+  onMetadataGenerated,
   submitLabel = "Submit Resource",
+  footerActions,
 }: ResourceFormProps) => {
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [isGeneratingTagline, setIsGeneratingTagline] = useState(false);
+  const [isGeneratingMetadata, setIsGeneratingMetadata] = useState(false);
+
   const [descriptionError, setDescriptionError] = useState<string | null>(null);
   const [taglineError, setTaglineError] = useState<string | null>(null);
+  const [metadataError, setMetadataError] = useState<string | null>(null);
 
-  const isGenerating = isGeneratingDescription || isGeneratingTagline;
+  const isGenerating =
+    isGeneratingDescription || isGeneratingTagline || isGeneratingMetadata;
 
   const getValue = (name: keyof ResourceFormState) => {
     const value = resource[name];
@@ -277,6 +291,46 @@ const ResourceForm = ({
     }
   };
 
+  const handleGenerateMetadata = async () => {
+    setMetadataError(null);
+    setIsGeneratingMetadata(true);
+
+    try {
+      const result = await generateResourceMetadataAction({
+        name: resource.name,
+        description: resource.description,
+        website: resource.website,
+        documentationUrl: resource.documentationUrl,
+        githubUrl: resource.githubUrl,
+        category: resource.category,
+        pricing: resource.pricing,
+        platforms: resource.platforms,
+        license: resource.license,
+        useCases: resource.useCases,
+        tags: resource.tags,
+        alternatives: resource.alternatives,
+        githubStats: resource.githubStats,
+        stackFit: resource.stackFit,
+      });
+
+      if (!result.success) {
+        setMetadataError(result.error ?? "Failed to generate metadata.");
+        return;
+      }
+
+      onMetadataGenerated({
+        tags: result.tags.join(", "),
+        alternatives: result.alternatives.join(", "),
+        useCases: result.useCases.join(", "),
+        platforms: result.platforms.join(", "),
+      });
+    } catch {
+      setMetadataError("Failed to generate metadata.");
+    } finally {
+      setIsGeneratingMetadata(false);
+    }
+  };
+
   return (
     <form onSubmit={onSubmit} className="w-full space-y-3">
       {inputFields.map((item) => (
@@ -327,6 +381,29 @@ const ResourceForm = ({
                   <>
                     <Sparkles className="mr-2 h-4 w-4" />
                     Generate description
+                  </>
+                )}
+              </Button>
+            ) : null}
+
+            {item.name === "tags" ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={loading || isGenerating}
+                onClick={handleGenerateMetadata}
+                className="h-8"
+              >
+                {isGeneratingMetadata ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate metadata
                   </>
                 )}
               </Button>
@@ -383,6 +460,10 @@ const ResourceForm = ({
 
           {item.name === "description" && descriptionError ? (
             <p className="mt-2 text-xs text-destructive">{descriptionError}</p>
+          ) : null}
+
+          {item.name === "tags" && metadataError ? (
+            <p className="mt-2 text-xs text-destructive">{metadataError}</p>
           ) : null}
         </div>
       ))}
@@ -471,23 +552,27 @@ const ResourceForm = ({
         ) : null}
       </div>
 
-      <Button
-        type="submit"
-        disabled={loading || isGenerating}
-        className="my-5 min-w-[170px] flex items-center gap-2"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Submitting...
-          </>
-        ) : (
-          <>
-            <Send className="mr-2 h-4 w-4" />
-            {submitLabel}
-          </>
-        )}
-      </Button>
+      <div className="my-5 flex items-center justify-between gap-3">
+        <Button
+          type="submit"
+          disabled={loading || isGenerating}
+          className="min-w-[170px] flex items-center gap-2"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            <>
+              <Send className="mr-2 h-4 w-4" />
+              {submitLabel}
+            </>
+          )}
+        </Button>
+
+        <div>{footerActions}</div>
+      </div>
     </form>
   );
 };
