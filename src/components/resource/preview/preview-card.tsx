@@ -28,12 +28,9 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { JSONContent } from "@tiptap/core";
 
-import type {
-  ResourceFormState,
-  ResourceUseCase,
-} from "@/utils/types/resource";
+import type { Resource, ResourceUseCase } from "@/utils/types/resource";
 
-type PreviewResource = ResourceFormState;
+type PreviewResource = Resource;
 
 const toArray = (value: string | string[] | undefined | null) => {
   if (Array.isArray(value)) {
@@ -48,6 +45,10 @@ const toArray = (value: string | string[] | undefined | null) => {
   }
 
   return [];
+};
+
+const isJsonContent = (value: unknown): value is JSONContent => {
+  return typeof value === "object" && value !== null;
 };
 
 const extractTextFromJson = (
@@ -84,6 +85,18 @@ const extractTextFromJson = (
     .trim();
 };
 
+const getDescriptionText = (description: unknown): string => {
+  if (typeof description === "string") {
+    return description.trim();
+  }
+
+  if (isJsonContent(description)) {
+    return extractTextFromJson(description);
+  }
+
+  return "";
+};
+
 const PreviewCard = ({ resource }: { resource: PreviewResource }) => {
   const tags = toArray(resource.tags);
   const alternatives = toArray(resource.alternatives);
@@ -99,7 +112,7 @@ const PreviewCard = ({ resource }: { resource: PreviewResource }) => {
 
   const taglineText = resource.tagline || "Short summary of the resource";
   const descriptionText =
-    extractTextFromJson(resource.description) ||
+    getDescriptionText(resource.description) ||
     "Resource description will appear here...";
 
   const alternativesText =

@@ -15,7 +15,7 @@ const SingleResourceCard = ({ resource }: SingleResourceCardProps) => {
   return (
     <Card className="mx-auto w-full max-w-2xl">
       <CardHeader className="flex flex-row items-center space-x-4 pb-2">
-        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border bg-muted shadow-sm">
+        <div className="relative h-16 w-16 overflow-hidden rounded-md border bg-muted shadow-sm">
           {resource.logo ? (
             <Image
               src={resource.logo}

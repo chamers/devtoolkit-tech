@@ -15,13 +15,18 @@ import {
   validateResourceFormState,
   validateResourceInput,
 } from "@/lib/validators/resource";
-import {
-  saveResourceToDB,
-  updateResourceInDB,
-  getResourceFromDB,
-  getUserResourcesFromDB,
-  setPublishedStatusInDB,
-} from "@/app/actions/resource";
+
+interface ApiSuccess<T> {
+  ok: true;
+  data: T;
+}
+
+interface ApiError {
+  ok: false;
+  error: string;
+}
+
+type ApiResult<T> = ApiSuccess<T> | ApiError;
 
 interface ResourceContextType {
   resource: ResourceFormState;
@@ -110,6 +115,56 @@ const mapResourceToFormState = (
   };
 };
 
+async function parseApiResponse<T>(response: Response): Promise<ApiResult<T>> {
+  const contentType = response.headers.get("content-type") ?? "";
+  const url = response.url;
+  const status = response.status;
+  const statusText = response.statusText;
+  const redirected = response.redirected;
+
+  if (!contentType.includes("application/json")) {
+    const text = await response.text();
+
+    console.error(
+      [
+        "Non-JSON API response",
+        `url: ${url}`,
+        `status: ${status}`,
+        `statusText: ${statusText}`,
+        `redirected: ${redirected}`,
+        `contentType: ${contentType || "(empty)"}`,
+        `bodyPreview: ${text.slice(0, 500) || "(empty)"}`,
+      ].join("\n"),
+    );
+
+    return {
+      ok: false,
+      error: `The server returned a non-JSON response (${status}).`,
+    };
+  }
+
+  try {
+    return (await response.json()) as ApiResult<T>;
+  } catch (error) {
+    console.error(
+      [
+        "Failed to parse JSON response",
+        `url: ${url}`,
+        `status: ${status}`,
+        `statusText: ${statusText}`,
+        `redirected: ${redirected}`,
+        `contentType: ${contentType || "(empty)"}`,
+        `error: ${error instanceof Error ? error.message : String(error)}`,
+      ].join("\n"),
+    );
+
+    return {
+      ok: false,
+      error: "The server returned an invalid response.",
+    };
+  }
+}
+
 export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -174,7 +229,12 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
     setError(null);
 
     try {
-      const result = await getUserResourcesFromDB();
+      const response = await fetch("/api/resources", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const result = await parseApiResponse<Resource[]>(response);
 
       if (!result.ok) {
         setError(result.error);
@@ -183,7 +243,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
 
-      setResources(result.data as Resource[]);
+      setResources(result.data);
     } catch (error) {
       console.error("❌ Failed to fetch user resources:", error);
       setError("Something went wrong while fetching your resources.");
@@ -199,7 +259,12 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
     setError(null);
 
     try {
-      const result = await getResourceFromDB(id);
+      const response = await fetch(`/api/resources/${id}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const result = await parseApiResponse<Resource>(response);
 
       if (!result.ok) {
         setError(result.error);
@@ -230,7 +295,15 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
       setError(null);
 
       try {
-        const result = await setPublishedStatusInDB(id, published);
+        const response = await fetch(`/api/resources/${id}/publish`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ published }),
+        });
+
+        const result = await parseApiResponse<Resource>(response);
 
         if (!result.ok) {
           setError(result.error);
@@ -242,7 +315,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
 
         setResources((prev) =>
           prev.map((item) =>
-            item._id === result.data._id ? (result.data as Resource) : item,
+            item._id === result.data._id ? result.data : item,
           ),
         );
 
@@ -395,10 +468,20 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
         isEditPage ? "Updating resource..." : "Saving resource...",
       );
 
-      const result =
+      const response = await fetch(
         isEditPage && resourceId
-          ? await updateResourceInDB(resourceId, payload)
-          : await saveResourceToDB(payload);
+          ? `/api/resources/${resourceId}`
+          : "/api/resources",
+        {
+          method: isEditPage && resourceId ? "PATCH" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      const result = await parseApiResponse<Resource>(response);
 
       if (!result.ok) {
         setError(result.error);
@@ -417,11 +500,12 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
       setResource(mappedResource);
       setInitialState(mappedResource);
 
-      if (!isEditPage) {
+      if (isEditPage) {
+        router.push(`/dashboard/edit/${result.data._id}`);
+      } else {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
+        router.push("/dashboard");
       }
-
-      router.push(`/dashboard/edit/${result.data._id}`);
     } catch (error) {
       console.error("❌ Failed to save resource:", error);
       setError("Something went wrong while saving the resource.");
