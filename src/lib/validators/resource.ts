@@ -1,4 +1,6 @@
 import { z } from "zod";
+import type { JSONContent } from "@tiptap/core";
+
 import {
   RESOURCE_CATEGORIES,
   RESOURCE_EVENT_TYPES,
@@ -112,11 +114,64 @@ const stackFitSchema = z.object({
   ai: z.boolean().optional().default(false),
 });
 
+const emptyRichTextDoc: JSONContent = {
+  type: "doc",
+  content: [
+    {
+      type: "paragraph",
+      content: [],
+    },
+  ],
+};
+
+const extractTextFromRichText = (
+  content: JSONContent | null | undefined,
+): string => {
+  if (!content) return "";
+
+  const walk = (node: JSONContent): string => {
+    if (node.type === "text") {
+      return node.text ?? "";
+    }
+
+    if (!node.content?.length) {
+      return "";
+    }
+
+    const text = node.content.map(walk).join("");
+
+    if (
+      node.type === "paragraph" ||
+      node.type === "heading" ||
+      node.type === "blockquote" ||
+      node.type === "codeBlock" ||
+      node.type === "listItem"
+    ) {
+      return `${text}\n`;
+    }
+
+    return text;
+  };
+
+  return walk(content)
+    .replace(/\n{2,}/g, "\n")
+    .trim();
+};
+
+const richTextContentSchema = z
+  .custom<JSONContent | null>(
+    (value) => value === null || (typeof value === "object" && value !== null),
+    { message: "Description must be valid rich text content" },
+  )
+  .refine((value) => extractTextFromRichText(value).length > 0, {
+    message: "Description is required",
+  });
+
 export const resourceInputSchema: z.ZodType<ResourceInput> = z.object({
   name: z.string().trim().min(1, "Name is required"),
   slug: z.string().trim().min(1, "Slug is required"),
   tagline: z.string().trim().min(1, "Tagline is required"),
-  description: z.string().trim().min(1, "Description is required"),
+  description: richTextContentSchema,
 
   website: z.string().trim().url("Website must be a valid URL"),
   documentationUrl: z
@@ -186,7 +241,7 @@ export const resourceFormSchema: z.ZodType<ResourceFormState> = z.object({
   name: z.string().trim().min(1, "Name is required"),
   slug: z.string().trim().min(1, "Slug is required"),
   tagline: z.string().trim().min(1, "Tagline is required"),
-  description: z.string().trim().min(1, "Description is required"),
+  description: richTextContentSchema,
 
   website: z.string().trim().url("Website must be a valid URL"),
   documentationUrl: z.string().trim().optional().default(""),
@@ -274,7 +329,7 @@ export const normalizeResourceFormState = (
     name: values.name.trim(),
     slug: values.slug.trim().toLowerCase(),
     tagline: values.tagline.trim(),
-    description: values.description.trim(),
+    description: values.description ?? emptyRichTextDoc,
 
     website: values.website.trim(),
     documentationUrl: values.documentationUrl?.trim() || undefined,

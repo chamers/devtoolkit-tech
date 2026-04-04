@@ -26,28 +26,14 @@ import {
   getUseCaseLabel,
 } from "@/utils/constants/resource-taxonomy";
 import type { LucideIcon } from "lucide-react";
+import type { JSONContent } from "@tiptap/core";
 
 import type {
-  ResourceCategory,
-  ResourcePricing,
+  ResourceFormState,
   ResourceUseCase,
 } from "@/utils/types/resource";
 
-type PreviewResource = {
-  _id?: string;
-  name?: string;
-  tagline?: string;
-  description?: string;
-  website?: string;
-  documentationUrl?: string;
-  githubUrl?: string;
-  category?: ResourceCategory;
-  pricing?: ResourcePricing;
-  tags?: string | string[];
-  useCases?: string | ResourceUseCase[];
-  alternatives?: string | string[];
-  logo?: string;
-};
+type PreviewResource = ResourceFormState;
 
 const toArray = (value: string | string[] | undefined | null) => {
   if (Array.isArray(value)) {
@@ -64,22 +50,57 @@ const toArray = (value: string | string[] | undefined | null) => {
   return [];
 };
 
+const extractTextFromJson = (
+  content: JSONContent | null | undefined,
+): string => {
+  if (!content) return "";
+
+  const walk = (node: JSONContent): string => {
+    if (node.type === "text") {
+      return node.text ?? "";
+    }
+
+    if (!node.content?.length) {
+      return "";
+    }
+
+    const text = node.content.map(walk).join("");
+
+    if (
+      node.type === "paragraph" ||
+      node.type === "heading" ||
+      node.type === "blockquote" ||
+      node.type === "codeBlock" ||
+      node.type === "listItem"
+    ) {
+      return `${text}\n`;
+    }
+
+    return text;
+  };
+
+  return walk(content)
+    .replace(/\n{2,}/g, "\n")
+    .trim();
+};
+
 const PreviewCard = ({ resource }: { resource: PreviewResource }) => {
   const tags = toArray(resource.tags);
   const alternatives = toArray(resource.alternatives);
   const useCases = toArray(resource.useCases);
 
   const categoryText = resource.category
-    ? getCategoryLabel(resource.category as never)
+    ? getCategoryLabel(resource.category)
     : "No category";
 
   const pricingText = resource.pricing
-    ? getPricingLabel(resource.pricing as never)
+    ? getPricingLabel(resource.pricing)
     : "Free";
 
   const taglineText = resource.tagline || "Short summary of the resource";
   const descriptionText =
-    resource.description || "Resource description will appear here...";
+    extractTextFromJson(resource.description) ||
+    "Resource description will appear here...";
 
   const alternativesText =
     alternatives.length > 0 ? alternatives.join(", ") : "No alternatives yet";

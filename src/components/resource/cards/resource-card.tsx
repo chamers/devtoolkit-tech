@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import type { JSONContent } from "@tiptap/core";
 import {
   BadgeInfo,
   DollarSign,
@@ -67,6 +68,44 @@ const toArray = (value: string | string[] | undefined | null) => {
   return [];
 };
 
+const extractTextFromRichText = (
+  content: string | JSONContent | null | undefined,
+): string => {
+  if (!content) return "";
+
+  if (typeof content === "string") {
+    return content.trim();
+  }
+
+  const walk = (node: JSONContent): string => {
+    if (node.type === "text") {
+      return node.text ?? "";
+    }
+
+    if (!node.content?.length) {
+      return "";
+    }
+
+    const text = node.content.map(walk).join("");
+
+    if (
+      node.type === "paragraph" ||
+      node.type === "heading" ||
+      node.type === "blockquote" ||
+      node.type === "codeBlock" ||
+      node.type === "listItem"
+    ) {
+      return `${text}\n`;
+    }
+
+    return text;
+  };
+
+  return walk(content)
+    .replace(/\n{2,}/g, "\n")
+    .trim();
+};
+
 const ResourceCard = ({ resource }: { resource: PreviewResource }) => {
   const tags = toArray(resource.tags);
   const alternatives = toArray(resource.alternatives);
@@ -82,7 +121,8 @@ const ResourceCard = ({ resource }: { resource: PreviewResource }) => {
 
   const taglineText = resource.tagline || "Short summary of the resource";
   const descriptionText =
-    resource.description || "Resource description will appear here...";
+    extractTextFromRichText(resource.description) ||
+    "Resource description will appear here...";
 
   const alternativesText =
     alternatives.length > 0 ? alternatives.join(", ") : "No alternatives yet";

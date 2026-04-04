@@ -1,3 +1,5 @@
+import type { JSONContent } from "@tiptap/core";
+
 import {
   RESOURCE_CATEGORIES,
   RESOURCE_EVENT_TYPES,
@@ -63,7 +65,7 @@ export interface ResourceBase {
   name: string;
   slug: string;
   tagline: string;
-  description: string;
+  description: JSONContent | null;
 
   website: string;
   documentationUrl?: string;
@@ -134,11 +136,41 @@ export interface Resource extends ResourceInput {
   updatedAt: Date | string;
 }
 
+export interface ResourceAIInput {
+  name: string;
+  tagline: string;
+  description: string;
+
+  website: string;
+  documentationUrl?: string;
+  githubUrl?: string;
+
+  category: ResourceCategory | "";
+  pricing: ResourcePricing | "";
+  platforms: string;
+  license: ResourceLicense | "";
+
+  useCases: string;
+  tags: string;
+  alternatives: string;
+
+  githubStats: GithubStats;
+  stackFit: StackFit;
+}
+
 export const defaultResourceFormState: ResourceFormState = {
   name: "",
   slug: "",
   tagline: "",
-  description: "",
+  description: {
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [],
+      },
+    ],
+  },
 
   website: "",
   documentationUrl: "",

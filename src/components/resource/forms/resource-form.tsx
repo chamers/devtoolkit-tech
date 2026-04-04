@@ -2,9 +2,13 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import type { JSONContent } from "@tiptap/core";
+import { Loader2, Send, Sparkles } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ImageUpload from "@/components/resource/uploads/image-upload-wrapper";
+import RichTextEditor from "@/components/editor/rich-text-editor";
 import {
   RESOURCE_CATEGORIES,
   RESOURCE_PLATFORMS,
@@ -12,7 +16,6 @@ import {
   RESOURCE_USE_CASES,
 } from "@/utils/constants/resource-taxonomy";
 import type { ResourceFormState } from "@/utils/types/resource";
-import { Loader2, Send, Sparkles } from "lucide-react";
 import { generateResourceDescriptionAction } from "@/app/actions/generate-resource-description-action";
 import { generateResourceTaglineAction } from "@/app/actions/generate-resource-tagline-action";
 import { generateResourceMetadataAction } from "@/app/actions/generate-resource-metadata-action";
@@ -37,7 +40,7 @@ interface ResourceFormProps {
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onLogoUploaded: (url: string) => void;
   onLogoRemoved?: () => void;
-  onDescriptionGenerated: (description: string) => void;
+  onDescriptionGenerated: (description: JSONContent) => void;
   onTaglineGenerated: (tagline: string) => void;
   onMetadataGenerated: (data: {
     tags: string;
@@ -45,6 +48,7 @@ interface ResourceFormProps {
     useCases: string;
     platforms: string;
   }) => void;
+  onDescriptionChange: (description: JSONContent) => void;
   submitLabel?: string;
   footerActions?: React.ReactNode;
 }
@@ -89,13 +93,6 @@ const inputFields: InputField[] = [
     label: "Tagline",
     type: "text",
     placeholder: "A short one-line summary",
-    required: true,
-  },
-  {
-    name: "description",
-    label: "Description",
-    type: "textarea",
-    placeholder: "Describe what this tool does and who it is for",
     required: true,
   },
   {
@@ -187,6 +184,76 @@ const inputFields: InputField[] = [
   },
 ];
 
+const createParagraphDoc = (text: string): JSONContent => {
+  const trimmed = text.trim();
+
+  if (!trimmed) {
+    return {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [],
+        },
+      ],
+    };
+  }
+
+  const paragraphs = trimmed
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph) => ({
+      type: "paragraph",
+      content: [{ type: "text", text: paragraph }],
+    }));
+
+  return {
+    type: "doc",
+    content:
+      paragraphs.length > 0
+        ? paragraphs
+        : [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: trimmed }],
+            },
+          ],
+  };
+};
+
+const getPlainTextFromDescription = (
+  description: ResourceFormState["description"],
+) => {
+  if (!description?.content) return "";
+
+  const extractText = (node: JSONContent): string => {
+    if (node.type === "text") {
+      return node.text ?? "";
+    }
+
+    if (!node.content?.length) {
+      return "";
+    }
+
+    const childText = node.content.map(extractText).join("");
+
+    if (
+      node.type === "paragraph" ||
+      node.type === "heading" ||
+      node.type === "blockquote" ||
+      node.type === "codeBlock" ||
+      node.type === "listItem"
+    ) {
+      return `${childText}\n`;
+    }
+
+    return childText;
+  };
+
+  return extractText(description).trim();
+};
+
 const ResourceForm = ({
   resource,
   loading = false,
@@ -197,6 +264,7 @@ const ResourceForm = ({
   onDescriptionGenerated,
   onTaglineGenerated,
   onMetadataGenerated,
+  onDescriptionChange,
   submitLabel = "Submit Resource",
   footerActions,
 }: ResourceFormProps) => {
@@ -248,7 +316,7 @@ const ResourceForm = ({
         return;
       }
 
-      onDescriptionGenerated(result.description);
+      onDescriptionGenerated(createParagraphDoc(result.description));
     } catch {
       setDescriptionError("Failed to generate description.");
     } finally {
@@ -263,7 +331,7 @@ const ResourceForm = ({
     try {
       const result = await generateResourceTaglineAction({
         name: resource.name,
-        description: resource.description,
+        description: getPlainTextFromDescription(resource.description),
         website: resource.website,
         documentationUrl: resource.documentationUrl,
         githubUrl: resource.githubUrl,
@@ -298,7 +366,7 @@ const ResourceForm = ({
     try {
       const result = await generateResourceMetadataAction({
         name: resource.name,
-        description: resource.description,
+        description: getPlainTextFromDescription(resource.description),
         website: resource.website,
         documentationUrl: resource.documentationUrl,
         githubUrl: resource.githubUrl,
@@ -363,29 +431,6 @@ const ResourceForm = ({
               </Button>
             ) : null}
 
-            {item.name === "description" ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={loading || isGenerating}
-                onClick={handleGenerateDescription}
-                className="h-8"
-              >
-                {isGeneratingDescription ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate description
-                  </>
-                )}
-              </Button>
-            ) : null}
-
             {item.name === "tags" ? (
               <Button
                 type="button"
@@ -410,18 +455,7 @@ const ResourceForm = ({
             ) : null}
           </div>
 
-          {item.type === "textarea" ? (
-            <textarea
-              id={item.name}
-              name={item.name}
-              placeholder={item.placeholder}
-              required={item.required}
-              onChange={onChange}
-              value={String(getValue(item.name))}
-              disabled={loading || isGenerating}
-              className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-            />
-          ) : item.type === "select" ? (
+          {item.type === "select" ? (
             <select
               id={item.name}
               name={item.name}
@@ -458,15 +492,47 @@ const ResourceForm = ({
             <p className="mt-2 text-xs text-destructive">{taglineError}</p>
           ) : null}
 
-          {item.name === "description" && descriptionError ? (
-            <p className="mt-2 text-xs text-destructive">{descriptionError}</p>
-          ) : null}
-
           {item.name === "tags" && metadataError ? (
             <p className="mt-2 text-xs text-destructive">{metadataError}</p>
           ) : null}
         </div>
       ))}
+
+      <div className="w-full">
+        <div className="mb-1 flex items-center justify-between gap-3">
+          <label className="block text-xs">Description</label>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={loading || isGenerating}
+            onClick={handleGenerateDescription}
+            className="h-8"
+          >
+            {isGeneratingDescription ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Generate description
+              </>
+            )}
+          </Button>
+        </div>
+
+        <RichTextEditor
+          value={resource.description}
+          onChange={onDescriptionChange}
+        />
+
+        {descriptionError ? (
+          <p className="mt-2 text-xs text-destructive">{descriptionError}</p>
+        ) : null}
+      </div>
 
       <div className="w-full space-y-3 rounded-lg border p-4">
         <div>

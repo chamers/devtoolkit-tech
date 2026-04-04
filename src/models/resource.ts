@@ -7,6 +7,7 @@ import {
   RESOURCE_PRICING,
   RESOURCE_USE_CASES,
 } from "@/utils/constants/resource-taxonomy";
+import type { JSONContent } from "@tiptap/core";
 import type {
   ResourceCategory,
   ResourcePricing,
@@ -23,7 +24,7 @@ export interface IResource extends Document {
   name: string;
   slug: string;
   tagline: string;
-  description: string;
+  description: JSONContent | null;
 
   website: string;
   documentationUrl?: string;
@@ -136,9 +137,8 @@ const ResourceSchema = new Schema<IResource>(
       trim: true,
     },
     description: {
-      type: String,
-      required: true,
-      trim: true,
+      type: Schema.Types.Mixed,
+      default: null,
     },
 
     website: {
@@ -336,7 +336,6 @@ const ResourceSchema = new Schema<IResource>(
 ResourceSchema.index({
   name: "text",
   tagline: "text",
-  description: "text",
   tags: "text",
 });
 

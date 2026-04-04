@@ -57,6 +57,12 @@ const EditResourcePage = () => {
           onSubmit={handleSubmit}
           onLogoUploaded={setLogoFromUpload}
           onLogoRemoved={removeLogo}
+          onDescriptionChange={(description) =>
+            setResource((prev) => ({
+              ...prev,
+              description,
+            }))
+          }
           onDescriptionGenerated={(description) =>
             setResource((prev) => ({
               ...prev,

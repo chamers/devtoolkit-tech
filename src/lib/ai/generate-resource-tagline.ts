@@ -2,7 +2,7 @@ import "server-only";
 
 import { GoogleGenAI } from "@google/genai";
 import type {
-  ResourceFormState,
+  ResourceAIInput,
   ResourcePlatform,
   ResourceUseCase,
 } from "@/utils/types/resource";
@@ -12,10 +12,10 @@ const ai = new GoogleGenAI({
 });
 
 // Primary (fast but unstable sometimes)
-//const PRIMARY_MODEL = "gemini-3-flash-preview";
+// const PRIMARY_MODEL = "gemini-3-flash-preview";
 
 // Fallback (more stable)
-//const FALLBACK_MODEL = "gemini-1.5-flash";
+// const FALLBACK_MODEL = "gemini-1.5-flash";
 
 const MODEL = "gemini-3-flash-preview";
 
@@ -46,7 +46,7 @@ export class GenerateResourceTaglineError extends Error {
 }
 
 type ResourceFormStateForAI = Pick<
-  ResourceFormState,
+  ResourceAIInput,
   | "name"
   | "description"
   | "website"
@@ -88,9 +88,7 @@ function toIsoDate(value?: Date | string | null): string | null {
   return value;
 }
 
-function getEnabledStackFit(
-  stackFit?: ResourceFormState["stackFit"],
-): string[] {
+function getEnabledStackFit(stackFit?: ResourceAIInput["stackFit"]): string[] {
   if (!stackFit) return [];
 
   return Object.entries(stackFit)
@@ -137,9 +135,9 @@ Rules:
 - Keep it clear, practical, and natural
 - Focus on what the resource does
 - No hype or buzzwords
-- Do not wrap the answer in quotes.
-- Output plain text only.
-- Keep the tone modern, clean, and useful for developers evaluating tools.
+- Do not wrap the answer in quotes
+- Output plain text only
+- Keep the tone modern, clean, and useful for developers evaluating tools
 
 Resource data:
 ${JSON.stringify(payload, null, 2)}
@@ -194,173 +192,3 @@ export async function aiGenerateResourceTaglineFromForm(
     );
   }
 }
-
-// import "server-only";
-
-// import { GoogleGenAI } from "@google/genai";
-// import type { ResourceFormState } from "@/utils/types/resource";
-
-// const ai = new GoogleGenAI({
-//   apiKey: process.env.GEMINI_API_KEY,
-// });
-
-// // Primary (fast but unstable sometimes)
-// const PRIMARY_MODEL = "gemini-3-flash-preview";
-
-// // Fallback (more stable)
-// const FALLBACK_MODEL = "gemini-1.5-flash";
-
-// type ResourceFormStateForAI = Pick<
-//   ResourceFormState,
-//   | "name"
-//   | "website"
-//   | "documentationUrl"
-//   | "githubUrl"
-//   | "category"
-//   | "pricing"
-//   | "tags"
-//   | "useCases"
-// >;
-
-// export class GenerateTaglineError extends Error {
-//   constructor(
-//     message: string,
-//     public code:
-//       | "MISSING_API_KEY"
-//       | "INVALID_INPUT"
-//       | "EMPTY_RESPONSE"
-//       | "GENERATION_FAILED" = "GENERATION_FAILED",
-//     cause?: unknown,
-//   ) {
-//     super(message, cause ? { cause } : undefined);
-//     this.name = "GenerateTaglineError";
-//   }
-// }
-
-// function clean(value?: string | null): string {
-//   return (value ?? "").trim();
-// }
-
-// function splitCsv(value?: string | null): string[] {
-//   return (value ?? "")
-//     .split(",")
-//     .map((item) => item.trim())
-//     .filter(Boolean);
-// }
-
-// function buildPrompt(form: ResourceFormStateForAI): string {
-//   const payload = {
-//     name: clean(form.name),
-//     website: clean(form.website),
-//     documentationUrl: clean(form.documentationUrl),
-//     githubUrl: clean(form.githubUrl),
-//     category: form.category || null,
-//     pricing: form.pricing || null,
-//     tags: splitCsv(form.tags),
-//     useCases: splitCsv(form.useCases),
-//   };
-
-//   return `
-// You are writing a concise tagline for a developer resource in a curated dev-toolkit platform.
-
-// Write a short, one-line tagline.
-
-// Rules:
-// - 8 to 16 words
-// - Clear and practical
-// - No hype or buzzwords
-// - No quotes
-
-// Resource:
-// ${JSON.stringify(payload, null, 2)}
-//   `.trim();
-// }
-
-// function wait(ms: number) {
-//   return new Promise((resolve) => setTimeout(resolve, ms));
-// }
-
-// function getStatus(error: any): number | undefined {
-//   return error?.status;
-// }
-
-// async function generateWithModel(
-//   model: string,
-//   form: ResourceFormStateForAI,
-// ): Promise<string> {
-//   const response = await ai.models.generateContent({
-//     model,
-//     contents: buildPrompt(form),
-//     config: {
-//       temperature: 0.5,
-//     },
-//   });
-
-//   const tagline = response.text?.trim();
-
-//   if (!tagline) {
-//     throw new GenerateTaglineError(
-//       "Empty tagline returned",
-//       "EMPTY_RESPONSE",
-//     );
-//   }
-
-//   return tagline;
-// }
-
-// export async function aiGenerateTaglineFromForm(
-//   form: ResourceFormStateForAI,
-// ): Promise<string> {
-//   if (!process.env.GEMINI_API_KEY) {
-//     throw new GenerateTaglineError(
-//       "Missing GEMINI_API_KEY",
-//       "MISSING_API_KEY",
-//     );
-//   }
-
-//   if (!clean(form.name)) {
-//     throw new GenerateTaglineError(
-//       "Resource name is required",
-//       "INVALID_INPUT",
-//     );
-//   }
-
-//   // 1️⃣ Try primary model
-//   try {
-//     return await generateWithModel(PRIMARY_MODEL, form);
-//   } catch (error: any) {
-//     console.error("Primary model failed:", error);
-
-//     const status = getStatus(error);
-
-//     // 2️⃣ Retry once if 503
-//     if (status === 503) {
-//       try {
-//         await wait(1000);
-//         return await generateWithModel(PRIMARY_MODEL, form);
-//       } catch (retryError: any) {
-//         console.error("Retry failed:", retryError);
-
-//         // 3️⃣ Fallback model
-//         try {
-//           console.log("➡️ Using fallback model...");
-//           return await generateWithModel(FALLBACK_MODEL, form);
-//         } catch (fallbackError) {
-//           console.error("Fallback failed:", fallbackError);
-
-//           throw new GenerateTaglineError(
-//             "AI services are busy. Please try again shortly.",
-//             "GENERATION_FAILED",
-//             fallbackError,
-//           );
-//         }
-//       }
-//     }
-
-//     throw new GenerateTaglineError(
-//       "Failed to generate tagline",
-//       "GENERATION_FAILED",
-//       error,
-//     );
-//   }
-// }

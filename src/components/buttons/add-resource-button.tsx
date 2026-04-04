@@ -20,13 +20,14 @@ const AddResourceButton = () => {
   return (
     <MenubarMenu>
       <MenubarTrigger asChild className="text-base font-normal">
-        <span
+        <button
+          type="button"
           onClick={handleClick}
-          className="flex cursor-pointer items-center"
+          className="flex items-center"
         >
           <Plus className="mr-2 h-4 w-4" />
           <span>Add Resource</span>
-        </span>
+        </button>
       </MenubarTrigger>
     </MenubarMenu>
   );

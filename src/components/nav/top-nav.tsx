@@ -7,17 +7,13 @@ import ModeToggle from "./mode-toggle";
 import MobileNav from "./mobile-nav";
 
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, LogIn, Plus } from "lucide-react";
-import { currentUser } from "@clerk/nextjs/server";
+import { LayoutDashboard, LogIn } from "lucide-react";
 import AddResourceButton from "../buttons/add-resource-button";
 
-const TopNav = async () => {
-  const user = await currentUser();
-
+const TopNav = () => {
   return (
     <header className="border-b bg-background">
       <div className="mx-auto flex h-14 items-center px-4">
-        {/* Left: logo */}
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center">
             <span className="sr-only">DevToolkit</span>
@@ -25,7 +21,7 @@ const TopNav = async () => {
             <Image
               src="/logos/logo.png"
               alt="DevToolkit"
-              className="block dark:hidden h-auto w-auto"
+              className="block h-auto w-auto dark:hidden"
               width={70}
               height={70}
               priority
@@ -34,7 +30,7 @@ const TopNav = async () => {
             <Image
               src="/logos/logo-dark.png"
               alt="DevToolkit (dark)"
-              className="hidden dark:block h-auto w-auto"
+              className="hidden h-auto w-auto dark:block"
               width={70}
               height={70}
               priority
@@ -42,15 +38,13 @@ const TopNav = async () => {
           </Link>
         </div>
 
-        {/* Spacer pushes right side */}
         <div className="flex-1" />
 
-        {/* Desktop nav */}
         <div className="hidden md:block">
           <Menubar className="flex gap-2 border-0 bg-transparent p-0 shadow-none">
             <AddResourceButton />
 
-            {user && (
+            <SignedIn>
               <MenubarMenu>
                 <MenubarTrigger asChild className="text-base font-normal">
                   <Link
@@ -63,14 +57,13 @@ const TopNav = async () => {
                   </Link>
                 </MenubarTrigger>
               </MenubarMenu>
-            )}
+            </SignedIn>
           </Menubar>
         </div>
 
-        {/* Right side: auth + actions */}
         <div className="ml-6 flex items-center gap-4">
           <SignedOut>
-            <SignInButton>
+            <SignInButton mode="modal">
               <button
                 type="button"
                 className="inline-flex items-center text-sm font-medium hover:opacity-80"

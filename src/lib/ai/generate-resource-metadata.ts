@@ -6,7 +6,7 @@ import {
   RESOURCE_USE_CASES,
 } from "@/utils/constants/resource-taxonomy";
 import type {
-  ResourceFormState,
+  ResourceAIInput,
   ResourcePlatform,
   ResourceUseCase,
 } from "@/utils/types/resource";
@@ -52,7 +52,7 @@ export class GenerateResourceMetadataError extends Error {
 }
 
 type ResourceFormStateForAI = Pick<
-  ResourceFormState,
+  ResourceAIInput,
   | "name"
   | "description"
   | "website"
@@ -86,9 +86,7 @@ function toIsoDate(value?: Date | string | null): string | null {
   return value;
 }
 
-function getEnabledStackFit(
-  stackFit?: ResourceFormState["stackFit"],
-): string[] {
+function getEnabledStackFit(stackFit?: ResourceAIInput["stackFit"]): string[] {
   if (!stackFit) return [];
 
   return Object.entries(stackFit)

@@ -1,6 +1,6 @@
 "use server";
 
-import type { ResourceFormState } from "@/utils/types/resource";
+import type { ResourceAIInput } from "@/utils/types/resource";
 import {
   aiGenerateResourceDescriptionFromForm,
   GenerateResourceDescriptionError,
@@ -13,7 +13,7 @@ export interface GenerateResourceDescriptionActionResult {
 }
 
 type ResourceFormStateForAI = Pick<
-  ResourceFormState,
+  ResourceAIInput,
   | "name"
   | "tagline"
   | "website"

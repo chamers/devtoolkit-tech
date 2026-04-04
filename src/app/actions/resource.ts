@@ -79,7 +79,7 @@ function buildResourcePayload(
     name: data.name.trim(),
     slug,
     tagline: data.tagline.trim(),
-    description: data.description.trim(),
+    description: data.description ?? null,
 
     website: data.website.trim(),
     documentationUrl: normalizeOptionalString(data.documentationUrl),
@@ -225,6 +225,8 @@ export const updateResourceInDB = async (
       return { ok: false, error: "Invalid resource id." };
     }
 
+    const resourceObjectId = new mongoose.Types.ObjectId(_id);
+
     const userResult = await getAuthenticatedUser();
     if (!userResult.ok) {
       return userResult;
@@ -234,9 +236,9 @@ export const updateResourceInDB = async (
     const ownerQuery = buildOwnerQuery(user);
 
     const existingResource = await Resource.findOne({
-      _id,
+      _id: resourceObjectId,
       ...ownerQuery,
-    });
+    }).lean();
 
     if (!existingResource) {
       return {
@@ -245,24 +247,27 @@ export const updateResourceInDB = async (
       };
     }
 
+    const nextName = data.name.trim();
+
     const slug =
-      existingResource.name === data.name.trim()
+      existingResource.name === nextName
         ? existingResource.slug
-        : await generateUniqueSlug(data.name, _id);
+        : await generateUniqueSlug(nextName, _id);
 
     const updatePayload = buildResourcePayload(data, user, slug);
 
     const updatedResource = await Resource.findOneAndUpdate(
       {
-        _id,
+        _id: resourceObjectId,
         ...ownerQuery,
       },
-      updatePayload,
+      { $set: updatePayload },
       {
         new: true,
         runValidators: true,
+        lean: true,
       },
-    ).lean();
+    );
 
     if (!updatedResource) {
       return {
@@ -449,6 +454,43 @@ export const getLatestResourcesFromDB = async (
     return {
       ok: false,
       error: "Something went wrong while fetching the latest resources.",
+    };
+  }
+};
+
+export const getResourceBySlugFromDB = async (
+  slug: string,
+): Promise<ActionResult<SerializedResource>> => {
+  try {
+    await db();
+
+    const normalizedSlug = slug.trim();
+
+    if (!normalizedSlug) {
+      return { ok: false, error: "Invalid resource slug." };
+    }
+
+    const resource = await Resource.findOne({
+      slug: normalizedSlug,
+      published: true,
+    }).lean();
+
+    if (!resource) {
+      return {
+        ok: false,
+        error: "Resource not found.",
+      };
+    }
+
+    return {
+      ok: true,
+      data: serializeResource(resource),
+    };
+  } catch (error) {
+    console.error("Error fetching resource by slug:", error);
+    return {
+      ok: false,
+      error: "Something went wrong while fetching the resource.",
     };
   }
 };
