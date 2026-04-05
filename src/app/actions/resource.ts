@@ -464,7 +464,7 @@ export const getResourceBySlugFromDB = async (
   try {
     await db();
 
-    const normalizedSlug = slug.trim();
+    const normalizedSlug = typeof slug === "string" ? slug.trim() : "";
 
     if (!normalizedSlug) {
       return { ok: false, error: "Invalid resource slug." };

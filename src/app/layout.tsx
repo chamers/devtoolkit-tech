@@ -17,9 +17,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DevToolkit: Your All-in-One Web Dev Resources Hub",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+  ),
+  title: {
+    default: "DevToolkit – All-in-One Web Development Resources Hub",
+    template: "%s | DevToolkit",
+  },
   description:
-    "DevToolkit empowers developers of all levels to build web applications faster and easier. It provides a comprehensive suite of tools for front-end development, back-end development, digital design and code management.",
+    "DevToolkit is a comprehensive hub of tools and resources to help developers build software faster, covering web development, backend systems, design, and code management.",
 };
 
 export default function RootLayout({
