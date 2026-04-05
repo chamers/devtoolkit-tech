@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCategoryLabel } from "@/utils/constants/resource-taxonomy";
 import type { SerializedResource } from "@/app/actions/resource";
+import RichTextRenderer from "../rich-text-renderer";
 
 interface SingleResourceCardProps {
   resource: SerializedResource;
@@ -41,7 +42,9 @@ const SingleResourceCard = ({ resource }: SingleResourceCardProps) => {
           </p>
         </div>
       </CardHeader>
-      <CardContent className="text-sm mb-4"></CardContent>
+      <CardContent className="text-sm mb-4">
+        <RichTextRenderer content={resource.description} />
+      </CardContent>
     </Card>
   );
 };

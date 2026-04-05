@@ -19,10 +19,7 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
   return (
     <div className="m-20 space-y-6">
       <SingleResourceCard resource={result.data} />
-      <section className="space-y-3">
-        <h2 className="text-2xl font-semibold">Description</h2>
-        <RichTextRenderer content={result.data.description} />
-      </section>
+
       <pre>{JSON.stringify(result.data, null, 2)}</pre>
     </div>
   );

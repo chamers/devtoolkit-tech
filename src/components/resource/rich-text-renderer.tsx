@@ -85,23 +85,26 @@ const RichTextRenderer = ({ content }: RichTextRendererProps) => {
   return (
     <div
       className="
-        max-w-none text-sm leading-7
-        [&_p]:my-3
+        tiptap
+        max-w-none
+        text-sm
+        leading-6
+        [&>*+*]:mt-2
+        [&_p]:m-0
         [&_strong]:font-semibold
         [&_em]:italic
-        [&_h2]:mt-6
-        [&_h2]:mb-3
-        [&_h2]:text-2xl
+        [&_h2]:text-[1.4rem]
         [&_h2]:font-bold
-        [&_ul]:my-4
+        [&_h2]:mt-3
+        [&_h2]:mb-1
         [&_ul]:list-disc
-        [&_ul]:pl-6
+        [&_ul]:pl-5
+        [&_ul]:my-2
         [&_li]:my-1
-        [&_blockquote]:my-4
         [&_blockquote]:border-l-4
         [&_blockquote]:border-muted-foreground
-        [&_blockquote]:pl-4
-        [&_blockquote]:italic
+        [&_blockquote]:pl-3
+        [&_blockquote]:my-3
         [&_blockquote]:text-muted-foreground
         [&_code]:rounded
         [&_code]:bg-muted
