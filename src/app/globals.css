@@ -143,8 +143,89 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Headings */
+  h1 {
+    @apply text-3xl md:text-4xl font-bold tracking-tight mb-4;
+  }
+
+  h2 {
+    @apply text-2xl md:text-3xl font-semibold tracking-tight mb-3;
+  }
+
+  h3 {
+    @apply text-xl md:text-2xl font-semibold mb-2;
+  }
+
+  h4 {
+    @apply text-lg font-medium mb-2;
+  }
+
+  h5 {
+    @apply text-base font-medium mb-1;
+  }
+
+  h6 {
+    @apply text-sm font-medium text-muted-foreground mb-1;
+  }
+
+  /* Paragraphs */
+  p {
+    @apply leading-relaxed text-base mb-3;
+  }
+
+  /* Links */
+  a {
+    @apply text-primary underline-offset-4 hover:underline transition-colors;
+  }
+
+  /* Lists */
+  ul {
+    @apply list-disc pl-6 mb-3;
+  }
+
+  ol {
+    @apply list-decimal pl-6 mb-3;
+  }
+
+  li {
+    @apply mb-1;
+  }
+
+  /* Blockquote */
+  blockquote {
+    @apply border-l-4 border-muted-foreground pl-4 italic text-muted-foreground my-4;
+  }
+
+  /* Code */
+  code {
+    @apply font-mono text-sm bg-muted px-1.5 py-0.5 rounded;
+  }
+
+  pre {
+    @apply bg-muted p-4 rounded-lg overflow-x-auto text-sm my-4;
+  }
+
+  /* Horizontal rule */
+  hr {
+    @apply border-border my-6;
+  }
+
+  /* Tables (basic reset) */
+  table {
+    @apply w-full border-collapse text-sm my-4;
+  }
+
+  th {
+    @apply text-left font-medium border-b border-border pb-2;
+  }
+
+  td {
+    @apply border-b border-border py-2;
   }
 }
 

@@ -66,6 +66,7 @@ export interface ResourceBase {
   slug: string;
   tagline: string;
   description: JSONContent | null;
+  descriptionText?: string;
 
   website: string;
   documentationUrl?: string;
@@ -105,6 +106,7 @@ export interface ResourceFormState extends Omit<
   | "platforms"
   | "license"
   | "logo"
+  | "descriptionText"
 > {
   category: ResourceCategory | "";
   pricing: ResourcePricing | "";
@@ -120,7 +122,7 @@ export interface ResourceFormState extends Omit<
   logoMode: "upload" | "url";
 }
 
-export interface ResourceInput extends ResourceBase {
+export interface ResourceInput extends Omit<ResourceBase, "descriptionText"> {
   category: ResourceCategory;
   pricing: ResourcePricing;
   useCases: ResourceUseCase[];
@@ -132,6 +134,7 @@ export interface Resource extends ResourceInput {
   _id: string;
   userId: string;
   userEmail?: string;
+  descriptionText?: string;
   createdAt: Date | string;
   updatedAt: Date | string;
 }

@@ -1,4 +1,6 @@
 import mongoose, { Schema, model, models, Document } from "mongoose";
+import type { JSONContent } from "@tiptap/core";
+
 import {
   RESOURCE_CATEGORIES,
   RESOURCE_EVENT_TYPES,
@@ -7,7 +9,7 @@ import {
   RESOURCE_PRICING,
   RESOURCE_USE_CASES,
 } from "@/utils/constants/resource-taxonomy";
-import type { JSONContent } from "@tiptap/core";
+
 import type {
   ResourceCategory,
   ResourcePricing,
@@ -20,37 +22,26 @@ import type {
 export interface IResource extends Document {
   userId: string;
   userEmail?: string;
-
   name: string;
   slug: string;
   tagline: string;
   description: JSONContent | null;
-
+  descriptionText?: string;
   website: string;
   documentationUrl?: string;
   githubUrl?: string;
-
   category: ResourceCategory;
   pricing: ResourcePricing;
-
   tags: string[];
   useCases: ResourceUseCase[];
   alternatives: string[];
-
   platforms: ResourcePlatform[];
   license?: ResourceLicense;
-
   logo?: string;
   screenshots: string[];
-
   headquarters?: string;
   country?: string;
-
-  communityRating: {
-    average: number;
-    count: number;
-  };
-
+  communityRating: { average: number; count: number };
   githubStats: {
     stars: number;
     forks: number;
@@ -58,12 +49,7 @@ export interface IResource extends Document {
     lastCommitDate: Date | null;
     repository?: string;
   };
-
-  comparisonTargets: {
-    slug: string;
-    label: string;
-  }[];
-
+  comparisonTargets: { slug: string; label: string }[];
   stackFit: {
     frontend: boolean;
     backend: boolean;
@@ -73,7 +59,6 @@ export interface IResource extends Document {
     testing: boolean;
     ai: boolean;
   };
-
   developerEvents: {
     name: string;
     type: ResourceEventType;
@@ -88,10 +73,8 @@ export interface IResource extends Document {
       longitude?: number | null;
     };
   }[];
-
   featured: boolean;
   published: boolean;
-
   createdAt: Date;
   updatedAt: Date;
 }
@@ -105,24 +88,11 @@ const resourceEventTypeValues = RESOURCE_EVENT_TYPES.map((item) => item.value);
 
 const ResourceSchema = new Schema<IResource>(
   {
-    userId: {
-      type: String,
-      ref: "User",
-      required: true,
-      index: true,
-    },
+    userId: { type: String, ref: "User", required: true, index: true },
+    userEmail: { type: String, trim: true, default: undefined },
 
-    userEmail: {
-      type: String,
-      trim: true,
-      default: undefined,
-    },
+    name: { type: String, required: true, trim: true },
 
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     slug: {
       type: String,
       required: true,
@@ -131,31 +101,15 @@ const ResourceSchema = new Schema<IResource>(
       trim: true,
       index: true,
     },
-    tagline: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    description: {
-      type: Schema.Types.Mixed,
-      default: null,
-    },
 
-    website: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    documentationUrl: {
-      type: String,
-      trim: true,
-      default: undefined,
-    },
-    githubUrl: {
-      type: String,
-      trim: true,
-      default: undefined,
-    },
+    tagline: { type: String, required: true, trim: true },
+
+    description: { type: Schema.Types.Mixed, default: null },
+    descriptionText: { type: String, trim: true, default: undefined },
+
+    website: { type: String, required: true, trim: true },
+    documentationUrl: { type: String, trim: true, default: undefined },
+    githubUrl: { type: String, trim: true, default: undefined },
 
     category: {
       type: String,
@@ -163,6 +117,7 @@ const ResourceSchema = new Schema<IResource>(
       enum: resourceCategoryValues,
       index: true,
     },
+
     pricing: {
       type: String,
       required: true,
@@ -170,105 +125,35 @@ const ResourceSchema = new Schema<IResource>(
       index: true,
     },
 
-    tags: {
-      type: [String],
-      default: [],
-    },
-    useCases: {
-      type: [String],
-      enum: resourceUseCaseValues,
-      default: [],
-    },
-    alternatives: {
-      type: [String],
-      default: [],
-    },
+    tags: { type: [String], default: [] },
+    useCases: { type: [String], enum: resourceUseCaseValues, default: [] },
+    alternatives: { type: [String], default: [] },
+    platforms: { type: [String], enum: resourcePlatformValues, default: [] },
+    license: { type: String, enum: resourceLicenseValues, default: undefined },
 
-    platforms: {
-      type: [String],
-      enum: resourcePlatformValues,
-      default: [],
-    },
-    license: {
-      type: String,
-      enum: resourceLicenseValues,
-      default: undefined,
-    },
+    logo: { type: String, trim: true, default: undefined },
+    screenshots: { type: [String], default: [] },
 
-    logo: {
-      type: String,
-      trim: true,
-      default: undefined,
-    },
-    screenshots: {
-      type: [String],
-      default: [],
-    },
-
-    headquarters: {
-      type: String,
-      trim: true,
-      default: undefined,
-    },
-    country: {
-      type: String,
-      trim: true,
-      default: undefined,
-    },
+    headquarters: { type: String, trim: true, default: undefined },
+    country: { type: String, trim: true, default: undefined },
 
     communityRating: {
-      average: {
-        type: Number,
-        default: 0,
-        min: 0,
-        max: 5,
-      },
-      count: {
-        type: Number,
-        default: 0,
-        min: 0,
-      },
+      average: { type: Number, default: 0, min: 0, max: 5 },
+      count: { type: Number, default: 0, min: 0 },
     },
 
     githubStats: {
-      stars: {
-        type: Number,
-        default: 0,
-        min: 0,
-      },
-      forks: {
-        type: Number,
-        default: 0,
-        min: 0,
-      },
-      issues: {
-        type: Number,
-        default: 0,
-        min: 0,
-      },
-      lastCommitDate: {
-        type: Date,
-        default: null,
-      },
-      repository: {
-        type: String,
-        trim: true,
-        default: undefined,
-      },
+      stars: { type: Number, default: 0, min: 0 },
+      forks: { type: Number, default: 0, min: 0 },
+      issues: { type: Number, default: 0, min: 0 },
+      lastCommitDate: { type: Date, default: null },
+      repository: { type: String, trim: true, default: undefined },
     },
 
     comparisonTargets: [
       {
-        slug: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        label: {
-          type: String,
-          required: true,
-          trim: true,
-        },
+        slug: { type: String, required: true, trim: true },
+        label: { type: String, required: true, trim: true },
       },
     ],
 
@@ -284,29 +169,11 @@ const ResourceSchema = new Schema<IResource>(
 
     developerEvents: [
       {
-        name: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        type: {
-          type: String,
-          required: true,
-          enum: resourceEventTypeValues,
-        },
-        website: {
-          type: String,
-          trim: true,
-          default: undefined,
-        },
-        startDate: {
-          type: Date,
-          default: null,
-        },
-        endDate: {
-          type: Date,
-          default: null,
-        },
+        name: { type: String, required: true, trim: true },
+        type: { type: String, required: true, enum: resourceEventTypeValues },
+        website: { type: String, trim: true, default: undefined },
+        startDate: { type: Date, default: null },
+        endDate: { type: Date, default: null },
         location: {
           venue: { type: String, trim: true, default: undefined },
           city: { type: String, trim: true, default: undefined },
@@ -317,27 +184,31 @@ const ResourceSchema = new Schema<IResource>(
       },
     ],
 
-    featured: {
-      type: Boolean,
-      default: false,
-      index: true,
-    },
-    published: {
-      type: Boolean,
-      default: false,
-      index: true,
-    },
+    featured: { type: Boolean, default: false, index: true },
+    published: { type: Boolean, default: false, index: true },
+  },
+  { timestamps: true },
+);
+
+ResourceSchema.index(
+  {
+    name: "text",
+    category: "text",
+    tags: "text",
+    descriptionText: "text",
   },
   {
-    timestamps: true,
+    weights: {
+      name: 10,
+      tags: 6,
+      category: 4,
+      descriptionText: 2,
+    },
+    name: "ResourceTextIndex",
   },
 );
 
-ResourceSchema.index({
-  name: "text",
-  tagline: "text",
-  tags: "text",
-});
+ResourceSchema.index({ published: 1, name: 1 });
 
 const Resource =
   models.Resource || model<IResource>("Resource", ResourceSchema);

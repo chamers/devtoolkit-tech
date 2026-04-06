@@ -11,6 +11,9 @@ import {
   Github,
   BookOpen,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import type { JSONContent } from "@tiptap/core";
+
 import {
   Card,
   CardContent,
@@ -25,12 +28,32 @@ import {
   getPricingLabel,
   getUseCaseLabel,
 } from "@/utils/constants/resource-taxonomy";
-import type { LucideIcon } from "lucide-react";
-import type { JSONContent } from "@tiptap/core";
+import type {
+  ResourceCategory,
+  ResourcePricing,
+  ResourceUseCase,
+} from "@/utils/types/resource";
 
-import type { Resource, ResourceUseCase } from "@/utils/types/resource";
+export type PreviewResource = {
+  _id?: string;
+  name?: string;
+  slug?: string;
+  tagline?: string;
+  description?: JSONContent | string | null;
 
-type PreviewResource = Resource;
+  website?: string;
+  documentationUrl?: string;
+  githubUrl?: string;
+
+  category?: ResourceCategory | "";
+  pricing?: ResourcePricing | "";
+
+  tags?: string | string[];
+  alternatives?: string | string[];
+  useCases?: string | string[];
+
+  logo?: string | null;
+};
 
 const toArray = (value: string | string[] | undefined | null) => {
   if (Array.isArray(value)) {
@@ -174,7 +197,6 @@ const PreviewCard = ({ resource }: { resource: PreviewResource }) => {
                       {tag}
                     </Badge>
                   ))}
-
                   {tags.length > 4 && (
                     <Badge variant="outline" className="text-xs">
                       +{tags.length - 4} more
@@ -207,7 +229,6 @@ const PreviewCard = ({ resource }: { resource: PreviewResource }) => {
                       {getUseCaseLabel(useCase as ResourceUseCase)}
                     </Badge>
                   ))}
-
                   {useCases.length > 3 && (
                     <Badge variant="outline" className="text-xs">
                       +{useCases.length - 3} more

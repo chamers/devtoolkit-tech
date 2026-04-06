@@ -3,12 +3,38 @@
 import slugify from "slugify";
 import mongoose from "mongoose";
 import { currentUser } from "@clerk/nextjs/server";
+import type { JSONContent } from "@tiptap/core";
 
 import db from "@/utils/db";
 import Resource from "@/models/resource";
-import type { ResourceInput } from "@/utils/types/resource";
+import type { ResourceCategory, ResourceInput } from "@/utils/types/resource";
 
 type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
+
+function extractTextFromJsonContent(content: JSONContent | null): string {
+  if (!content) return "";
+
+  let text = "";
+
+  if (typeof content.text === "string") {
+    text += `${content.text} `;
+  }
+
+  if (Array.isArray(content.content)) {
+    for (const child of content.content) {
+      text += extractTextFromJsonContent(child);
+    }
+  }
+
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function getErrorMessage(
+  error: unknown,
+  fallback = "Something went wrong.",
+): string {
+  return error instanceof Error ? error.message : fallback;
+}
 
 type ResourcePayload = ReturnType<typeof buildResourcePayload>;
 
@@ -30,6 +56,15 @@ export type PaginatedResources = {
   page: number;
   limit: number;
   totalPages: number;
+};
+
+export type AutocompleteResource = {
+  _id: string;
+  name: string;
+  slug: string;
+  category: ResourceCategory;
+  tags: string[];
+  logo?: string;
 };
 
 const DEFAULT_RESOURCE_PAGE_SIZE = 12;
@@ -80,6 +115,7 @@ function buildResourcePayload(
     slug,
     tagline: data.tagline.trim(),
     description: data.description ?? null,
+    descriptionText: extractTextFromJsonContent(data.description ?? null),
 
     website: data.website.trim(),
     documentationUrl: normalizeOptionalString(data.documentationUrl),
@@ -205,11 +241,14 @@ export const saveResourceToDB = async (
       ok: true,
       data: serializeResource(resource.toObject()),
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error saving resource:", error);
     return {
       ok: false,
-      error: "Something went wrong while saving the resource.",
+      error: getErrorMessage(
+        error,
+        "Something went wrong while saving the resource.",
+      ),
     };
   }
 };
@@ -280,11 +319,14 @@ export const updateResourceInDB = async (
       ok: true,
       data: serializeResource(updatedResource),
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error updating resource:", error);
     return {
       ok: false,
-      error: "Something went wrong while updating the resource.",
+      error: getErrorMessage(
+        error,
+        "Something went wrong while updating the resource.",
+      ),
     };
   }
 };
@@ -312,11 +354,14 @@ export const getUserResourcesFromDB = async (): Promise<
       ok: true,
       data: resources.map(serializeResource),
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching user resources:", error);
     return {
       ok: false,
-      error: "Something went wrong while fetching your resources.",
+      error: getErrorMessage(
+        error,
+        "Something went wrong while fetching your resources.",
+      ),
     };
   }
 };
@@ -355,11 +400,14 @@ export const getResourceFromDB = async (
       ok: true,
       data: serializeResource(resource),
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching resource:", error);
     return {
       ok: false,
-      error: "Something went wrong while fetching the resource.",
+      error: getErrorMessage(
+        error,
+        "Something went wrong while fetching the resource.",
+      ),
     };
   }
 };
@@ -408,11 +456,14 @@ export const setPublishedStatusInDB = async (
       ok: true,
       data: serializeResource(updatedResource),
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error setting published status:", error);
     return {
       ok: false,
-      error: "Something went wrong while updating publish status.",
+      error: getErrorMessage(
+        error,
+        "Something went wrong while updating publish status.",
+      ),
     };
   }
 };
@@ -448,12 +499,15 @@ export const getLatestResourcesFromDB = async (
         totalPages: Math.ceil(totalCount / safeLimit),
       },
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching latest resources:", error);
 
     return {
       ok: false,
-      error: "Something went wrong while fetching the latest resources.",
+      error: getErrorMessage(
+        error,
+        "Something went wrong while fetching the latest resources.",
+      ),
     };
   }
 };
@@ -486,11 +540,126 @@ export const getResourceBySlugFromDB = async (
       ok: true,
       data: serializeResource(resource),
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching resource by slug:", error);
     return {
       ok: false,
-      error: "Something went wrong while fetching the resource.",
+      error: getErrorMessage(
+        error,
+        "Something went wrong while fetching the resource.",
+      ),
+    };
+  }
+};
+
+export const searchResourcesFromDB = async (
+  query: string,
+): Promise<ActionResult<SerializedResource[]>> => {
+  try {
+    await db();
+
+    const trimmedQuery = query.trim();
+
+    if (!trimmedQuery) {
+      return {
+        ok: true,
+        data: [],
+      };
+    }
+
+    if (trimmedQuery.length < 3) {
+      const escapedQuery = trimmedQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      const resources = await Resource.find({
+        published: true,
+        name: { $regex: `^${escapedQuery}`, $options: "i" },
+      })
+        .sort({ name: 1 })
+        .limit(10)
+        .lean();
+
+      return {
+        ok: true,
+        data: resources.map(serializeResource),
+      };
+    }
+
+    const resources = await Resource.find(
+      {
+        published: true,
+        $text: { $search: trimmedQuery },
+      },
+      {
+        score: { $meta: "textScore" },
+      },
+    )
+      .sort({ score: { $meta: "textScore" }, createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    return {
+      ok: true,
+      data: resources.map(serializeResource),
+    };
+  } catch (error: unknown) {
+    console.error("Error searching resources:", error);
+
+    return {
+      ok: false,
+      error: getErrorMessage(
+        error,
+        "Something went wrong while searching resources.",
+      ),
+    };
+  }
+};
+
+export const autocompleteResourcesFromDB = async (
+  query: string,
+): Promise<ActionResult<AutocompleteResource[]>> => {
+  try {
+    await db();
+
+    const trimmedQuery = query.trim();
+
+    if (!trimmedQuery) {
+      return {
+        ok: true,
+        data: [],
+      };
+    }
+
+    const escapedQuery = trimmedQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const resources = await Resource.find({
+      published: true,
+      name: { $regex: `^${escapedQuery}`, $options: "i" },
+    })
+      .select("_id name slug category tags logo")
+      .sort({ name: 1 })
+      .limit(8)
+      .lean();
+
+    return {
+      ok: true,
+      data: resources.map((resource) => ({
+        _id: resource._id.toString(),
+        name: resource.name,
+        slug: resource.slug,
+        category: resource.category,
+        tags: resource.tags ?? [],
+        logo: resource.logo,
+      })),
+    };
+  } catch (error: unknown) {
+    console.error("Error autocompleting resources:", error);
+
+    return {
+      ok: false,
+      error: getErrorMessage(
+        error,
+        "Something went wrong while autocompleting resources.",
+      ),
     };
   }
 };

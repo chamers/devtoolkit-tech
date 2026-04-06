@@ -190,7 +190,7 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
   const resourceId = typeof idParam === "string" ? idParam : undefined;
 
   const isDashboardPage = pathname === "/dashboard";
-  const isAddPage = pathname === "/resource/add";
+  const isAddPage = pathname === "/resources/add";
   const isEditPage = pathname.startsWith("/dashboard/edit/");
 
   const setLogoFromUpload = React.useCallback((url: string) => {

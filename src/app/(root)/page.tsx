@@ -49,7 +49,7 @@ export default async function Home({ searchParams }: HomePageProps) {
             {resources.map((resource) => (
               <Link
                 key={resource._id}
-                href={`/resource/${resource.slug}`}
+                href={`/resources/${resource.slug}`}
                 className="block h-full"
               >
                 <div className="h-full transform transition duration-300 hover:scale-[1.02]">

@@ -1,20 +1,20 @@
 import Link from "next/link";
 import Image from "next/image";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { LayoutDashboard, LogIn } from "lucide-react";
 
 import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
 
 import ModeToggle from "./mode-toggle";
 import MobileNav from "./mobile-nav";
-
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, LogIn } from "lucide-react";
 import AddResourceButton from "../buttons/add-resource-button";
+import SearchButton from "../buttons/search-button";
 
 const TopNav = () => {
   return (
     <header className="border-b bg-background">
-      <div className="mx-auto flex h-14 items-center px-4">
-        <div className="flex items-center gap-2">
+      <div className="mx-auto flex h-14 items-center gap-3 px-4">
+        <div className="shrink-0">
           <Link href="/" className="flex items-center">
             <span className="sr-only">DevToolkit</span>
 
@@ -38,9 +38,13 @@ const TopNav = () => {
           </Link>
         </div>
 
-        <div className="flex-1" />
+        <div className="hidden min-w-0 flex-1 md:flex md:justify-center">
+          <div className="w-full max-w-2xl">
+            <SearchButton />
+          </div>
+        </div>
 
-        <div className="hidden md:block">
+        <div className="hidden items-center gap-2 md:flex">
           <Menubar className="flex gap-2 border-0 bg-transparent p-0 shadow-none">
             <AddResourceButton />
 
@@ -61,17 +65,19 @@ const TopNav = () => {
           </Menubar>
         </div>
 
-        <div className="ml-6 flex items-center gap-4">
+        <div className="ml-auto flex items-center gap-3">
           <SignedOut>
-            <SignInButton mode="modal">
-              <button
-                type="button"
-                className="inline-flex items-center text-sm font-medium hover:opacity-80"
-              >
-                <LogIn className="mr-2 h-4 w-4" />
-                Sign in
-              </button>
-            </SignInButton>
+            <div className="hidden md:block">
+              <SignInButton mode="modal">
+                <button
+                  type="button"
+                  className="inline-flex items-center text-sm font-medium hover:opacity-80"
+                >
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Sign in
+                </button>
+              </SignInButton>
+            </div>
           </SignedOut>
 
           <SignedIn>
@@ -81,6 +87,9 @@ const TopNav = () => {
           <ModeToggle />
           <MobileNav />
         </div>
+      </div>
+      <div className="border-t px-4 py-3 md:hidden">
+        <SearchButton />
       </div>
     </header>
   );

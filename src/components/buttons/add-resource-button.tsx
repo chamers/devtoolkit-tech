@@ -14,7 +14,7 @@ const AddResourceButton = () => {
     setResource(defaultResourceFormState);
     setInitialState(defaultResourceFormState);
     localStorage.removeItem("resource");
-    router.push("/resource/add");
+    router.push("/resources/add");
   };
 
   return (
