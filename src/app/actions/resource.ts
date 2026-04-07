@@ -67,6 +67,11 @@ export type AutocompleteResource = {
   logo?: string;
 };
 
+export type ResourceListFilters = {
+  category?: string;
+  tag?: string;
+};
+
 const DEFAULT_RESOURCE_PAGE_SIZE = 12;
 
 function normalizeOptionalString(value?: string) {
@@ -471,6 +476,7 @@ export const setPublishedStatusInDB = async (
 export const getLatestResourcesFromDB = async (
   page = 1,
   limit = DEFAULT_RESOURCE_PAGE_SIZE,
+  filters: ResourceListFilters = {},
 ): Promise<ActionResult<PaginatedResources>> => {
   try {
     await db();
@@ -478,7 +484,21 @@ export const getLatestResourcesFromDB = async (
     const safePage = Math.max(1, page);
     const safeLimit = Math.max(1, limit);
 
-    const query = { published: true };
+    const query: {
+      published: boolean;
+      category?: string;
+      tags?: string;
+    } = {
+      published: true,
+    };
+
+    if (filters.category?.trim()) {
+      query.category = filters.category.trim();
+    }
+
+    if (filters.tag?.trim()) {
+      query.tags = filters.tag.trim();
+    }
 
     const [resources, totalCount] = await Promise.all([
       Resource.find(query)
@@ -659,6 +679,42 @@ export const autocompleteResourcesFromDB = async (
       error: getErrorMessage(
         error,
         "Something went wrong while autocompleting resources.",
+      ),
+    };
+  }
+};
+
+export const getUniqueTagsFromDB = async (): Promise<
+  ActionResult<string[]>
+> => {
+  try {
+    await db();
+
+    const tags = await Resource.distinct("tags", {
+      published: true,
+    });
+
+    const normalizedTags = [
+      ...new Set(
+        tags
+          .filter((tag): tag is string => typeof tag === "string")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+      ),
+    ].sort((a, b) => a.localeCompare(b));
+
+    return {
+      ok: true,
+      data: normalizedTags,
+    };
+  } catch (error: unknown) {
+    console.error("Error fetching unique tags:", error);
+
+    return {
+      ok: false,
+      error: getErrorMessage(
+        error,
+        "Something went wrong while fetching tags.",
       ),
     };
   }

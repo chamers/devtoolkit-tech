@@ -4,6 +4,8 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 type PaginationControlsProps = {
   currentPage: number;
   totalPages: number;
+  category?: string;
+  tag?: string;
 };
 
 function getPageNumbers(currentPage: number, totalPages: number) {
@@ -38,13 +40,30 @@ function getPageNumbers(currentPage: number, totalPages: number) {
   return pages;
 }
 
-function createPageHref(page: number) {
-  return page === 1 ? "/" : `/?page=${page}`;
+function createPageHref(page: number, category?: string, tag?: string) {
+  const params = new URLSearchParams();
+
+  if (page > 1) {
+    params.set("page", String(page));
+  }
+
+  if (category) {
+    params.set("category", category);
+  }
+
+  if (tag) {
+    params.set("tag", tag);
+  }
+
+  const queryString = params.toString();
+  return queryString ? `/?${queryString}` : "/";
 }
 
 export default function PaginationControls({
   currentPage,
   totalPages,
+  category,
+  tag,
 }: PaginationControlsProps) {
   if (totalPages <= 1) return null;
 
@@ -56,7 +75,7 @@ export default function PaginationControls({
       className="flex flex-wrap items-center justify-center gap-2"
     >
       <Link
-        href={createPageHref(Math.max(1, currentPage - 1))}
+        href={createPageHref(Math.max(1, currentPage - 1), category, tag)}
         aria-disabled={currentPage === 1}
         className={[
           "inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors",
@@ -80,7 +99,7 @@ export default function PaginationControls({
         ) : (
           <Link
             key={page}
-            href={createPageHref(page)}
+            href={createPageHref(page, category, tag)}
             aria-current={page === currentPage ? "page" : undefined}
             className={[
               "inline-flex h-9 w-9 items-center justify-center rounded-md border text-sm font-medium transition-colors",
@@ -95,7 +114,11 @@ export default function PaginationControls({
       )}
 
       <Link
-        href={createPageHref(Math.min(totalPages, currentPage + 1))}
+        href={createPageHref(
+          Math.min(totalPages, currentPage + 1),
+          category,
+          tag,
+        )}
         aria-disabled={currentPage === totalPages}
         className={[
           "inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors",

@@ -40,18 +40,14 @@ export type PreviewResource = {
   slug?: string;
   tagline?: string;
   description?: JSONContent | string | null;
-
   website?: string;
   documentationUrl?: string;
   githubUrl?: string;
-
   category?: ResourceCategory | "";
   pricing?: ResourcePricing | "";
-
   tags?: string | string[];
   alternatives?: string | string[];
   useCases?: string | string[];
-
   logo?: string | null;
 };
 
@@ -120,7 +116,13 @@ const getDescriptionText = (description: unknown): string => {
   return "";
 };
 
-const PreviewCard = ({ resource }: { resource: PreviewResource }) => {
+const PreviewCard = ({
+  resource,
+  showFooter = true,
+}: {
+  resource: PreviewResource;
+  showFooter?: boolean;
+}) => {
   const tags = toArray(resource.tags);
   const alternatives = toArray(resource.alternatives);
   const useCases = toArray(resource.useCases);
@@ -178,8 +180,8 @@ const PreviewCard = ({ resource }: { resource: PreviewResource }) => {
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 space-y-1">
-        <p className="line-clamp-3 pb-4 text-sm">{descriptionText}</p>
+      <CardContent className="flex-1 space-y-3">
+        <p className="line-clamp-3 text-sm">{descriptionText}</p>
 
         <div className="space-y-2">
           <InfoItem icon={BadgeInfo} label="Tagline" text={taglineText} />
@@ -236,35 +238,39 @@ const PreviewCard = ({ resource }: { resource: PreviewResource }) => {
                   )}
                 </>
               ) : (
-                <span>{useCasesText}</span>
+                <span className="text-xs text-muted-foreground">
+                  {useCasesText}
+                </span>
               )}
             </div>
           </div>
         </div>
       </CardContent>
 
-      <CardFooter className="mt-auto flex flex-wrap gap-2 border-t pt-3 opacity-80 transition-all duration-200 group-hover:-translate-y-px group-hover:opacity-100">
-        {resource.website && (
-          <Button type="button" variant="outline" size="sm" className="gap-2">
-            <Globe className="h-4 w-4" />
-            Website
-          </Button>
-        )}
+      {showFooter && (
+        <CardFooter className="mt-auto flex flex-wrap gap-2 border-t pt-3 opacity-80 transition-all duration-200 group-hover:-translate-y-px group-hover:opacity-100">
+          {resource.website && (
+            <Button type="button" variant="outline" size="sm" className="gap-2">
+              <Globe className="h-4 w-4" />
+              Website
+            </Button>
+          )}
 
-        {resource.githubUrl && (
-          <Button type="button" variant="outline" size="sm" className="gap-2">
-            <Github className="h-4 w-4" />
-            GitHub
-          </Button>
-        )}
+          {resource.githubUrl && (
+            <Button type="button" variant="outline" size="sm" className="gap-2">
+              <Github className="h-4 w-4" />
+              GitHub
+            </Button>
+          )}
 
-        {resource.documentationUrl && (
-          <Button type="button" variant="outline" size="sm" className="gap-2">
-            <BookOpen className="h-4 w-4" />
-            Docs
-          </Button>
-        )}
-      </CardFooter>
+          {resource.documentationUrl && (
+            <Button type="button" variant="outline" size="sm" className="gap-2">
+              <BookOpen className="h-4 w-4" />
+              Docs
+            </Button>
+          )}
+        </CardFooter>
+      )}
     </Card>
   );
 };
