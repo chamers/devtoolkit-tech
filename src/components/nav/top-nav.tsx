@@ -1,7 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, LogIn } from "lucide-react";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  UserButton,
+  useUser,
+} from "@clerk/nextjs";
+import { LayoutDashboard, LogIn, ShieldCheck } from "lucide-react";
 
 import ModeToggle from "./mode-toggle";
 import MobileNav from "./mobile-nav";
@@ -9,6 +17,12 @@ import AddResourceButton from "../buttons/add-resource-button";
 import SearchButton from "../buttons/search-button";
 
 const TopNav = () => {
+  const { user, isLoaded } = useUser();
+
+  if (!isLoaded) return null;
+
+  const isAdmin = user?.publicMetadata?.role === "admin";
+
   return (
     <header className="border-b bg-background">
       <div className="mx-auto flex h-14 items-center gap-3 px-4">
@@ -54,6 +68,17 @@ const TopNav = () => {
               <LayoutDashboard className="mr-2 h-4 w-4" />
               <span>Dashboard</span>
             </Link>
+
+            {isAdmin && (
+              <Link
+                prefetch={false}
+                href="/dashboard/admin"
+                className="relative inline-flex h-9 items-center rounded-md px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-orange-600 after:transition-all after:duration-300 hover:after:w-full"
+              >
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                <span>Admin</span>
+              </Link>
+            )}
           </SignedIn>
         </div>
 
