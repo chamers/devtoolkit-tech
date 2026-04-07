@@ -3,8 +3,6 @@ import Image from "next/image";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { LayoutDashboard, LogIn } from "lucide-react";
 
-import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
-
 import ModeToggle from "./mode-toggle";
 import MobileNav from "./mobile-nav";
 import AddResourceButton from "../buttons/add-resource-button";
@@ -45,24 +43,18 @@ const TopNav = () => {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Menubar className="flex gap-2 border-0 bg-transparent p-0 shadow-none">
-            <AddResourceButton />
+          <AddResourceButton />
 
-            <SignedIn>
-              <MenubarMenu>
-                <MenubarTrigger asChild className="text-base font-normal">
-                  <Link
-                    prefetch={false}
-                    href="/dashboard"
-                    className="flex items-center"
-                  >
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
-                  </Link>
-                </MenubarTrigger>
-              </MenubarMenu>
-            </SignedIn>
-          </Menubar>
+          <SignedIn>
+            <Link
+              prefetch={false}
+              href="/dashboard"
+              className="inline-flex h-9 items-center rounded-md px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              <span>Dashboard</span>
+            </Link>
+          </SignedIn>
         </div>
 
         <div className="ml-auto flex items-center gap-3">
@@ -87,9 +79,6 @@ const TopNav = () => {
           <ModeToggle />
           <MobileNav />
         </div>
-      </div>
-      <div className="border-t px-4 py-3 md:hidden">
-        <SearchButton />
       </div>
     </header>
   );

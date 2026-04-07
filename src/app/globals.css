@@ -180,7 +180,9 @@
 
   /* Links */
   a {
-    @apply text-primary underline-offset-4 hover:underline transition-colors;
+    /* @apply text-primary underline-offset-4 hover:underline transition-colors; */
+    @apply text-primary relative inline-flex h-9 items-center rounded-md px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground
+             after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-orange-600 after:transition-all after:duration-300 hover:after:w-full;
   }
 
   /* Lists */

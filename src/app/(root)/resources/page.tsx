@@ -1,5 +1,7 @@
-import PreviewCard from "@/components/resource/preview/preview-card";
+import Link from "next/link";
+
 import PaginationControls from "@/components/shared/pagination-controls";
+import ResourceCard from "@/components/resource/cards/resource-card";
 import {
   getLatestResourcesFromDB,
   searchResourcesFromDB,
@@ -56,9 +58,17 @@ export default async function ResourcesPage({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid w-full max-w-7xl grid-cols-1 items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {resources.map((resource) => (
-              <PreviewCard key={resource._id} resource={resource} />
+              <Link
+                key={resource._id}
+                href={`/resources/${resource.slug}`}
+                className="block h-full"
+              >
+                <div className="h-full transform transition duration-300 hover:scale-[1.02]">
+                  <ResourceCard resource={resource} />
+                </div>
+              </Link>
             ))}
           </div>
         )}
@@ -96,9 +106,17 @@ export default async function ResourcesPage({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid w-full max-w-7xl grid-cols-1 items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {resources.map((resource) => (
-              <PreviewCard key={resource._id} resource={resource} />
+              <Link
+                key={resource._id}
+                href={`/resources/${resource.slug}`}
+                className="block h-full"
+              >
+                <div className="h-full transform transition duration-300 hover:scale-[1.02]">
+                  <ResourceCard resource={resource} />
+                </div>
+              </Link>
             ))}
           </div>
 
