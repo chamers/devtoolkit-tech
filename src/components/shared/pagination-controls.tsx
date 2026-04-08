@@ -6,6 +6,8 @@ type PaginationControlsProps = {
   totalPages: number;
   category?: string;
   tag?: string;
+  published?: string;
+  basePath?: string;
 };
 
 function getPageNumbers(currentPage: number, totalPages: number) {
@@ -40,7 +42,13 @@ function getPageNumbers(currentPage: number, totalPages: number) {
   return pages;
 }
 
-function createPageHref(page: number, category?: string, tag?: string) {
+function createPageHref(
+  page: number,
+  category?: string,
+  tag?: string,
+  published?: string,
+  basePath = "/",
+) {
   const params = new URLSearchParams();
 
   if (page > 1) {
@@ -55,8 +63,12 @@ function createPageHref(page: number, category?: string, tag?: string) {
     params.set("tag", tag);
   }
 
+  if (published) {
+    params.set("published", published);
+  }
+
   const queryString = params.toString();
-  return queryString ? `/?${queryString}` : "/";
+  return queryString ? `${basePath}?${queryString}` : basePath;
 }
 
 export default function PaginationControls({
@@ -64,6 +76,8 @@ export default function PaginationControls({
   totalPages,
   category,
   tag,
+  published,
+  basePath = "/",
 }: PaginationControlsProps) {
   if (totalPages <= 1) return null;
 
@@ -75,7 +89,13 @@ export default function PaginationControls({
       className="flex flex-wrap items-center justify-center gap-2"
     >
       <Link
-        href={createPageHref(Math.max(1, currentPage - 1), category, tag)}
+        href={createPageHref(
+          Math.max(1, currentPage - 1),
+          category,
+          tag,
+          published,
+          basePath,
+        )}
         aria-disabled={currentPage === 1}
         className={[
           "inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors",
@@ -99,7 +119,7 @@ export default function PaginationControls({
         ) : (
           <Link
             key={page}
-            href={createPageHref(page, category, tag)}
+            href={createPageHref(page, category, tag, published, basePath)}
             aria-current={page === currentPage ? "page" : undefined}
             className={[
               "inline-flex h-9 w-9 items-center justify-center rounded-md border text-sm font-medium transition-colors",
@@ -118,6 +138,8 @@ export default function PaginationControls({
           Math.min(totalPages, currentPage + 1),
           category,
           tag,
+          published,
+          basePath,
         )}
         aria-disabled={currentPage === totalPages}
         className={[

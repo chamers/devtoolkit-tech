@@ -719,3 +719,68 @@ export const getUniqueTagsFromDB = async (): Promise<
     };
   }
 };
+
+type AdminResourceListFilters = ResourceListFilters & {
+  published?: boolean;
+};
+
+export const getAllResourcesForAdminFromDB = async (
+  page = 1,
+  limit = DEFAULT_RESOURCE_PAGE_SIZE,
+  filters: AdminResourceListFilters = {},
+): Promise<ActionResult<PaginatedResources>> => {
+  try {
+    await db();
+
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.max(1, limit);
+
+    const query: {
+      published?: boolean;
+      category?: string;
+      tags?: { $in: string[] };
+    } = {};
+
+    if (typeof filters.published === "boolean") {
+      query.published = filters.published;
+    }
+
+    if (filters.category?.trim()) {
+      query.category = filters.category.trim();
+    }
+
+    if (filters.tag?.trim()) {
+      query.tags = { $in: [filters.tag.trim()] };
+    }
+
+    const [resources, totalCount] = await Promise.all([
+      Resource.find(query)
+        .sort({ createdAt: -1 })
+        .skip((safePage - 1) * safeLimit)
+        .limit(safeLimit)
+        .lean(),
+      Resource.countDocuments(query),
+    ]);
+
+    return {
+      ok: true,
+      data: {
+        resources: resources.map(serializeResource),
+        totalCount,
+        page: safePage,
+        limit: safeLimit,
+        totalPages: Math.ceil(totalCount / safeLimit),
+      },
+    };
+  } catch (error: unknown) {
+    console.error("Error fetching admin resources:", error);
+
+    return {
+      ok: false,
+      error: getErrorMessage(
+        error,
+        "Something went wrong while fetching admin resources.",
+      ),
+    };
+  }
+};

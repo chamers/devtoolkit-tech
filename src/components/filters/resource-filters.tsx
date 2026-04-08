@@ -20,6 +20,7 @@ export default function ResourceFilters({
 
   const selectedCategory = searchParams.get("category") ?? undefined;
   const selectedTag = searchParams.get("tag") ?? undefined;
+  const selectedPublished = searchParams.get("published") ?? undefined;
 
   function updateParam(key: string, value?: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -38,9 +39,11 @@ export default function ResourceFilters({
 
   function clearFilters() {
     const params = new URLSearchParams(searchParams.toString());
+
     params.delete("category");
     params.delete("tag");
     params.delete("page");
+    // deliberately preserve "published"
 
     const queryString = params.toString();
     router.push(queryString ? `${pathname}?${queryString}` : pathname);
@@ -52,7 +55,16 @@ export default function ResourceFilters({
     <aside className="w-full rounded-2xl border bg-background p-4 shadow-sm">
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-base font-semibold tracking-tight">Filters</h2>
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold tracking-tight">Filters</h2>
+
+            {selectedPublished ? (
+              <p className="text-xs text-muted-foreground">
+                Status:{" "}
+                {selectedPublished === "true" ? "Published" : "Unpublished"}
+              </p>
+            ) : null}
+          </div>
 
           {hasActiveFilters ? (
             <button
