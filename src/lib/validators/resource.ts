@@ -52,6 +52,12 @@ const resourceEventTypeEnum = z.custom<
   message: "Invalid event type",
 });
 
+const resourceStatusEnum = z.union([
+  z.literal("pending"),
+  z.literal("published"),
+  z.literal("rejected"),
+]);
+
 const allowedUseCases = new Set<string>(resourceUseCaseValues);
 const allowedPlatforms = new Set<string>(resourcePlatformValues);
 
@@ -235,6 +241,7 @@ export const resourceInputSchema: z.ZodType<ResourceInput> = z.object({
 
   featured: z.boolean().default(false),
   published: z.boolean().default(false),
+  status: resourceStatusEnum.default("pending"),
 });
 
 export const resourceFormSchema: z.ZodType<ResourceFormState> = z.object({
@@ -252,6 +259,7 @@ export const resourceFormSchema: z.ZodType<ResourceFormState> = z.object({
     .refine((value) => value !== "", {
       message: "Category is required",
     }),
+
   pricing: z
     .union([resourcePricingEnum, z.literal("")])
     .refine((value) => value !== "", {
@@ -272,6 +280,7 @@ export const resourceFormSchema: z.ZodType<ResourceFormState> = z.object({
     .refine((value) => value === "" || isValidUrl(value), {
       message: "Logo must be a valid URL",
     }),
+
   logoMode: z.union([z.literal("upload"), z.literal("url")]).default("upload"),
   screenshots: z.string().default(""),
 
@@ -288,6 +297,7 @@ export const resourceFormSchema: z.ZodType<ResourceFormState> = z.object({
 
   featured: z.boolean().default(false),
   published: z.boolean().default(false),
+  status: resourceStatusEnum.default("pending"),
 });
 
 export type ValidatedResourceInput = z.infer<typeof resourceInputSchema>;
@@ -398,6 +408,7 @@ export const normalizeResourceFormState = (
 
     featured: values.featured ?? false,
     published: values.published ?? false,
+    status: values.status ?? "pending",
   };
 };
 

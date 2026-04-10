@@ -95,6 +95,13 @@ export interface ResourceBase {
 
   featured: boolean;
   published: boolean;
+
+  status: ResourceStatus;
+  approvedBy?: string;
+  approvedAt?: Date | string | null;
+  rejectedBy?: string;
+  rejectedAt?: Date | string | null;
+  rejectionReason?: string;
 }
 
 export interface ResourceFormState extends Omit<
@@ -107,6 +114,11 @@ export interface ResourceFormState extends Omit<
   | "license"
   | "logo"
   | "descriptionText"
+  | "approvedBy"
+  | "approvedAt"
+  | "rejectedBy"
+  | "rejectedAt"
+  | "rejectionReason"
 > {
   category: ResourceCategory | "";
   pricing: ResourcePricing | "";
@@ -223,4 +235,8 @@ export const defaultResourceFormState: ResourceFormState = {
 
   featured: false,
   published: false,
+
+  status: "pending",
 };
+
+export type ResourceStatus = "pending" | "published" | "rejected";

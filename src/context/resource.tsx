@@ -440,11 +440,18 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       setLoading(true);
       setError(null);
-
+      console.log(
+        "Description before validation:",
+        JSON.stringify(resource.description, null, 2),
+      );
+      console.log("Resource before validation:", resource);
       const formValidation = validateResourceFormState(resource);
 
       if (!formValidation.success) {
-        console.error("Form validation failed:", formValidation.error.issues);
+        console.error(
+          "Form validation failed:",
+          JSON.stringify(formValidation.error.issues, null, 2),
+        );
         setError("Please correct the form fields before submitting.");
         toast.error("Please correct the form fields before submitting.");
         return;

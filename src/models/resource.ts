@@ -19,6 +19,8 @@ import type {
   ResourceEventType,
 } from "@/utils/types/resource";
 
+export type ResourceStatus = "pending" | "published" | "rejected";
+
 export interface IResource extends Document {
   userId: string;
   userEmail?: string;
@@ -77,6 +79,12 @@ export interface IResource extends Document {
   published: boolean;
   createdAt: Date;
   updatedAt: Date;
+  status: ResourceStatus;
+  approvedBy?: string;
+  approvedAt?: Date | null;
+  rejectedBy?: string;
+  rejectedAt?: Date | null;
+  rejectionReason?: string;
 }
 
 const resourceCategoryValues = RESOURCE_CATEGORIES.map((item) => item.value);
@@ -186,6 +194,19 @@ const ResourceSchema = new Schema<IResource>(
 
     featured: { type: Boolean, default: false, index: true },
     published: { type: Boolean, default: false, index: true },
+    status: {
+      type: String,
+      enum: ["pending", "published", "rejected"],
+      default: "pending",
+      index: true,
+    },
+
+    approvedBy: { type: String, default: undefined },
+    approvedAt: { type: Date, default: null },
+
+    rejectedBy: { type: String, default: undefined },
+    rejectedAt: { type: Date, default: null },
+    rejectionReason: { type: String, trim: true, default: undefined },
   },
   { timestamps: true },
 );
@@ -208,7 +229,7 @@ ResourceSchema.index(
   },
 );
 
-ResourceSchema.index({ published: 1, name: 1 });
+ResourceSchema.index({ status: 1, published: 1, name: 1 });
 
 const Resource =
   models.Resource || model<IResource>("Resource", ResourceSchema);

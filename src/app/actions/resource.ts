@@ -8,6 +8,7 @@ import type { JSONContent } from "@tiptap/core";
 import db from "@/utils/db";
 import Resource from "@/models/resource";
 import type { ResourceCategory, ResourceInput } from "@/utils/types/resource";
+import { assertAdmin } from "@/lib/auth/assert-admin";
 
 type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -111,42 +112,42 @@ function buildResourcePayload(
   data: ResourceInput,
   user: Awaited<ReturnType<typeof currentUser>>,
   slug: string,
+  overrides?: Partial<{
+    status: "pending" | "published" | "rejected";
+    published: boolean;
+    approvedBy?: string;
+    approvedAt?: Date | null;
+    rejectedBy?: string;
+    rejectedAt?: Date | null;
+    rejectionReason?: string;
+  }>,
 ) {
   return {
     userId: user?.id,
     userEmail: user?.emailAddresses[0]?.emailAddress,
-
     name: data.name.trim(),
     slug,
     tagline: data.tagline.trim(),
     description: data.description ?? null,
     descriptionText: extractTextFromJsonContent(data.description ?? null),
-
     website: data.website.trim(),
     documentationUrl: normalizeOptionalString(data.documentationUrl),
     githubUrl: normalizeOptionalString(data.githubUrl),
-
     category: data.category,
     pricing: data.pricing,
-
     tags: normalizeStringArray(data.tags),
     useCases: data.useCases ?? [],
     alternatives: normalizeStringArray(data.alternatives),
-
     platforms: data.platforms ?? [],
     license: data.license || undefined,
-
     logo: normalizeOptionalString(data.logo),
     screenshots: normalizeStringArray(data.screenshots),
-
     headquarters: normalizeOptionalString(data.headquarters),
     country: normalizeOptionalString(data.country),
-
     communityRating: {
       average: data.communityRating?.average ?? 0,
       count: data.communityRating?.count ?? 0,
     },
-
     githubStats: {
       stars: data.githubStats?.stars ?? 0,
       forks: data.githubStats?.forks ?? 0,
@@ -154,12 +155,10 @@ function buildResourcePayload(
       lastCommitDate: data.githubStats?.lastCommitDate ?? null,
       repository: normalizeOptionalString(data.githubStats?.repository),
     },
-
     comparisonTargets: (data.comparisonTargets ?? []).map((item) => ({
       slug: item.slug.trim(),
       label: item.label.trim(),
     })),
-
     stackFit: {
       frontend: data.stackFit?.frontend ?? false,
       backend: data.stackFit?.backend ?? false,
@@ -169,7 +168,6 @@ function buildResourcePayload(
       testing: data.stackFit?.testing ?? false,
       ai: data.stackFit?.ai ?? false,
     },
-
     developerEvents: (data.developerEvents ?? []).map((event) => ({
       name: event.name.trim(),
       type: event.type,
@@ -186,12 +184,16 @@ function buildResourcePayload(
           }
         : undefined,
     })),
-
     featured: data.featured ?? false,
-    published: data.published ?? false,
+    status: overrides?.status ?? "pending",
+    published: overrides?.published ?? false,
+    approvedBy: overrides?.approvedBy,
+    approvedAt: overrides?.approvedAt ?? null,
+    rejectedBy: overrides?.rejectedBy,
+    rejectedAt: overrides?.rejectedAt ?? null,
+    rejectionReason: overrides?.rejectionReason,
   };
 }
-
 function serializeResource(resource: ResourceDocumentLike): SerializedResource {
   return {
     ...resource,
@@ -277,14 +279,28 @@ export const updateResourceInDB = async (
     }
 
     const user = userResult.data;
-    const ownerQuery = buildOwnerQuery(user);
 
-    const existingResource = await Resource.findOne({
-      _id: resourceObjectId,
-      ...ownerQuery,
-    }).lean();
+    const isAdmin = user.publicMetadata?.role === "admin";
+
+    const existingResource = await Resource.findById(resourceObjectId).lean();
 
     if (!existingResource) {
+      return {
+        ok: false,
+        error: "Resource not found.",
+      };
+    }
+
+    const isOwner =
+      existingResource.userId === user.id ||
+      (user.emailAddresses[0]?.emailAddress &&
+        existingResource.userEmail === user.emailAddresses[0]?.emailAddress);
+
+    const canEditPending = existingResource.status === "pending" && isOwner;
+    const canEditPublished = existingResource.status === "published" && isAdmin;
+    const canEditRejected = existingResource.status === "rejected" && isAdmin;
+
+    if (!canEditPending && !canEditPublished && !canEditRejected) {
       return {
         ok: false,
         error: "You are not allowed to update this resource.",
@@ -298,13 +314,18 @@ export const updateResourceInDB = async (
         ? existingResource.slug
         : await generateUniqueSlug(nextName, _id);
 
-    const updatePayload = buildResourcePayload(data, user, slug);
+    const updatePayload = buildResourcePayload(data, user, slug, {
+      status: existingResource.status,
+      published: existingResource.published,
+      approvedBy: existingResource.approvedBy,
+      approvedAt: existingResource.approvedAt,
+      rejectedBy: existingResource.rejectedBy,
+      rejectedAt: existingResource.rejectedAt,
+      rejectionReason: existingResource.rejectionReason,
+    });
 
-    const updatedResource = await Resource.findOneAndUpdate(
-      {
-        _id: resourceObjectId,
-        ...ownerQuery,
-      },
+    const updatedResource = await Resource.findByIdAndUpdate(
+      resourceObjectId,
       { $set: updatePayload },
       {
         new: true,
@@ -387,13 +408,27 @@ export const getResourceFromDB = async (
     }
 
     const user = userResult.data;
+    const isAdmin = user.publicMetadata?.role === "admin";
 
-    const resource = await Resource.findOne({
-      _id,
-      ...buildOwnerQuery(user),
-    }).lean();
+    const resource = await Resource.findById(_id).lean();
 
     if (!resource) {
+      return {
+        ok: false,
+        error: "Resource not found.",
+      };
+    }
+
+    const isOwner =
+      resource.userId === user.id ||
+      (user.emailAddresses[0]?.emailAddress &&
+        resource.userEmail === user.emailAddresses[0]?.emailAddress);
+
+    const canViewPending = resource.status === "pending" && isOwner;
+    const canViewPublished = resource.status === "published" && isAdmin;
+    const canViewRejected = resource.status === "rejected" && isAdmin;
+
+    if (!canViewPending && !canViewPublished && !canViewRejected) {
       return {
         ok: false,
         error:
@@ -485,11 +520,11 @@ export const getLatestResourcesFromDB = async (
     const safeLimit = Math.max(1, limit);
 
     const query: {
-      published: boolean;
+      status: "published";
       category?: string;
       tags?: string;
     } = {
-      published: true,
+      status: "published",
     };
 
     if (filters.category?.trim()) {
@@ -546,7 +581,7 @@ export const getResourceBySlugFromDB = async (
 
     const resource = await Resource.findOne({
       slug: normalizedSlug,
-      published: true,
+      status: "published",
     }).lean();
 
     if (!resource) {
@@ -591,7 +626,7 @@ export const searchResourcesFromDB = async (
       const escapedQuery = trimmedQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
       const resources = await Resource.find({
-        published: true,
+        status: "published",
         name: { $regex: `^${escapedQuery}`, $options: "i" },
       })
         .sort({ name: 1 })
@@ -606,7 +641,7 @@ export const searchResourcesFromDB = async (
 
     const resources = await Resource.find(
       {
-        published: true,
+        status: "published",
         $text: { $search: trimmedQuery },
       },
       {
@@ -652,7 +687,7 @@ export const autocompleteResourcesFromDB = async (
     const escapedQuery = trimmedQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     const resources = await Resource.find({
-      published: true,
+      status: "published",
       name: { $regex: `^${escapedQuery}`, $options: "i" },
     })
       .select("_id name slug category tags logo")
@@ -691,7 +726,7 @@ export const getUniqueTagsFromDB = async (): Promise<
     await db();
 
     const tags = await Resource.distinct("tags", {
-      published: true,
+      status: "published",
     });
 
     const normalizedTags = [
@@ -721,7 +756,7 @@ export const getUniqueTagsFromDB = async (): Promise<
 };
 
 type AdminResourceListFilters = ResourceListFilters & {
-  published?: boolean;
+  status?: "pending" | "published" | "rejected";
 };
 
 export const getAllResourcesForAdminFromDB = async (
@@ -731,18 +766,19 @@ export const getAllResourcesForAdminFromDB = async (
 ): Promise<ActionResult<PaginatedResources>> => {
   try {
     await db();
+    await assertAdmin();
 
     const safePage = Math.max(1, page);
     const safeLimit = Math.max(1, limit);
 
     const query: {
-      published?: boolean;
+      status?: "pending" | "published" | "rejected";
       category?: string;
       tags?: { $in: string[] };
     } = {};
 
-    if (typeof filters.published === "boolean") {
-      query.published = filters.published;
+    if (filters.status) {
+      query.status = filters.status;
     }
 
     if (filters.category?.trim()) {
@@ -780,6 +816,119 @@ export const getAllResourcesForAdminFromDB = async (
       error: getErrorMessage(
         error,
         "Something went wrong while fetching admin resources.",
+      ),
+    };
+  }
+};
+
+export const approveResourceInDB = async (
+  _id: string,
+): Promise<ActionResult<SerializedResource>> => {
+  try {
+    await db();
+
+    if (!_id || !mongoose.Types.ObjectId.isValid(_id)) {
+      return { ok: false, error: "Invalid resource id." };
+    }
+
+    const admin = await assertAdmin();
+
+    const updatedResource = await Resource.findByIdAndUpdate(
+      _id,
+      {
+        $set: {
+          status: "published",
+          published: true,
+          approvedBy: admin.id,
+          approvedAt: new Date(),
+          rejectedBy: undefined,
+          rejectedAt: null,
+          rejectionReason: undefined,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+        lean: true,
+      },
+    );
+
+    if (!updatedResource) {
+      return {
+        ok: false,
+        error: "Resource not found.",
+      };
+    }
+
+    return {
+      ok: true,
+      data: serializeResource(updatedResource),
+    };
+  } catch (error: unknown) {
+    console.error("Error approving resource:", error);
+
+    return {
+      ok: false,
+      error: getErrorMessage(
+        error,
+        "Something went wrong while approving the resource.",
+      ),
+    };
+  }
+};
+
+export const rejectResourceInDB = async (
+  _id: string,
+  rejectionReason?: string,
+): Promise<ActionResult<SerializedResource>> => {
+  try {
+    await db();
+
+    if (!_id || !mongoose.Types.ObjectId.isValid(_id)) {
+      return { ok: false, error: "Invalid resource id." };
+    }
+
+    const admin = await assertAdmin();
+
+    const updatedResource = await Resource.findByIdAndUpdate(
+      _id,
+      {
+        $set: {
+          status: "rejected",
+          published: false,
+          rejectedBy: admin.id,
+          rejectedAt: new Date(),
+          rejectionReason: rejectionReason?.trim() || undefined,
+          approvedBy: undefined,
+          approvedAt: null,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+        lean: true,
+      },
+    );
+
+    if (!updatedResource) {
+      return {
+        ok: false,
+        error: "Resource not found.",
+      };
+    }
+
+    return {
+      ok: true,
+      data: serializeResource(updatedResource),
+    };
+  } catch (error: unknown) {
+    console.error("Error rejecting resource:", error);
+
+    return {
+      ok: false,
+      error: getErrorMessage(
+        error,
+        "Something went wrong while rejecting the resource.",
       ),
     };
   }

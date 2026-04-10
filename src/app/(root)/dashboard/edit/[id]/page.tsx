@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import PreviewCard from "@/components/resource/preview/preview-card";
 import ResourceForm from "@/components/resource/forms/resource-form";
-import { Button } from "@/components/ui/button";
+import ReviewActions from "@/components/admin/review-actions";
 import { useResource } from "@/context/resource";
 
 const EditResourcePage = () => {
@@ -21,7 +21,6 @@ const EditResourcePage = () => {
     setLogoFromUpload,
     removeLogo,
     setResource,
-    setPublishedStatus,
   } = useResource();
 
   if (!isHydrated) {
@@ -86,16 +85,7 @@ const EditResourcePage = () => {
           }
           footerActions={
             resourceId ? (
-              <Button
-                type="button"
-                variant="outline"
-                disabled={loading}
-                onClick={() =>
-                  void setPublishedStatus(resourceId, !resource.published)
-                }
-              >
-                {resource.published ? "Unpublish" : "Publish"}
-              </Button>
+              <ReviewActions resourceId={resourceId} status={resource.status} />
             ) : null
           }
         />
