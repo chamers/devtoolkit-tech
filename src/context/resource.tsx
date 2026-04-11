@@ -499,19 +499,21 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
       toast.success(
         isEditPage
           ? "🎉 Resource updated successfully!"
-          : "🎉 Resource saved successfully!",
+          : "🎉 Resource submitted successfully!",
         { id: toastId },
       );
 
       const mappedResource = mapResourceToFormState(result.data);
-      setResource(mappedResource);
-      setInitialState(mappedResource);
 
       if (isEditPage) {
+        setResource(mappedResource);
+        setInitialState(mappedResource);
         router.push(`/dashboard/edit/${result.data._id}`);
       } else {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
-        router.push("/dashboard");
+        setResource(defaultResourceFormState);
+        setInitialState(defaultResourceFormState);
+        router.push("/resources/submitted");
       }
     } catch (error) {
       console.error("❌ Failed to save resource:", error);

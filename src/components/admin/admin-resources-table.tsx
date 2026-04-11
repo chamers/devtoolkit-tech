@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { SerializedResource } from "@/app/actions/resource";
+import DeleteResourceButton from "./delete-resource-button";
 
 interface AdminResourcesTableProps {
   resources: SerializedResource[];
@@ -86,6 +87,11 @@ const AdminResourcesTable = ({ resources }: AdminResourcesTableProps) => {
                   >
                     {actionLabel}
                   </Link>
+
+                  <DeleteResourceButton
+                    resourceId={resource._id}
+                    resourceName={resource.name}
+                  />
                 </div>
               </td>
             </tr>

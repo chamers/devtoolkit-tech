@@ -933,3 +933,41 @@ export const rejectResourceInDB = async (
     };
   }
 };
+
+export const deleteResourceInDB = async (
+  _id: string,
+): Promise<ActionResult<{ _id: string }>> => {
+  try {
+    await db();
+
+    if (!_id || !mongoose.Types.ObjectId.isValid(_id)) {
+      return { ok: false, error: "Invalid resource id." };
+    }
+
+    await assertAdmin();
+
+    const deletedResource = await Resource.findByIdAndDelete(_id).lean();
+
+    if (!deletedResource) {
+      return {
+        ok: false,
+        error: "Resource not found.",
+      };
+    }
+
+    return {
+      ok: true,
+      data: { _id },
+    };
+  } catch (error: unknown) {
+    console.error("Error deleting resource:", error);
+
+    return {
+      ok: false,
+      error: getErrorMessage(
+        error,
+        "Something went wrong while deleting the resource.",
+      ),
+    };
+  }
+};

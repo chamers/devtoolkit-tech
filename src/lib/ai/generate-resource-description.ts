@@ -161,13 +161,18 @@ export async function aiGenerateResourceDescriptionFromForm(
   }
 
   try {
+    const prompt = buildPrompt(form);
+
     const response = await ai.models.generateContent({
       model: MODEL,
-      contents: buildPrompt(form),
+      contents: prompt,
       config: {
         temperature: 0.4,
       },
     });
+
+    console.log("Gemini description text:", response.text);
+    console.log("Gemini full response:", response);
 
     const description = response.text?.trim();
 
@@ -183,6 +188,8 @@ export async function aiGenerateResourceDescriptionFromForm(
     if (error instanceof GenerateResourceDescriptionError) {
       throw error;
     }
+
+    console.error("aiGenerateResourceDescriptionFromForm failed:", error);
 
     throw new GenerateResourceDescriptionError(
       "Failed to generate resource description.",

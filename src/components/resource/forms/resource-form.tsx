@@ -11,6 +11,7 @@ import ImageUpload from "@/components/resource/uploads/image-upload-wrapper";
 import RichTextEditor from "@/components/editor/rich-text-editor";
 import {
   RESOURCE_CATEGORIES,
+  RESOURCE_LICENSES,
   RESOURCE_PLATFORMS,
   RESOURCE_PRICING,
   RESOURCE_USE_CASES,
@@ -59,6 +60,11 @@ const categoryOptions = RESOURCE_CATEGORIES.map((item) => ({
 }));
 
 const pricingOptions = RESOURCE_PRICING.map((item) => ({
+  label: item.label,
+  value: item.value,
+}));
+
+const licenseOptions = RESOURCE_LICENSES.map((item) => ({
   label: item.label,
   value: item.value,
 }));
@@ -131,6 +137,14 @@ const inputFields: InputField[] = [
     placeholder: "Select pricing",
     required: true,
     options: pricingOptions,
+  },
+  {
+    name: "license",
+    label: "License",
+    type: "select",
+    placeholder: "Select license",
+    required: false,
+    options: licenseOptions,
   },
   {
     name: "tags",
@@ -311,13 +325,22 @@ const ResourceForm = ({
         stackFit: resource.stackFit,
       });
 
+      console.log("Description generation result:", result);
+
       if (!result.success) {
         setDescriptionError(result.error ?? "Failed to generate description.");
         return;
       }
 
+      if (!result.description?.trim()) {
+        setDescriptionError("No description was generated.");
+        return;
+      }
+      console.log("Passing generated description to form:", result.description);
+
       onDescriptionGenerated(createParagraphDoc(result.description));
-    } catch {
+    } catch (error) {
+      console.error("Generate description failed:", error);
       setDescriptionError("Failed to generate description.");
     } finally {
       setIsGeneratingDescription(false);
@@ -346,13 +369,21 @@ const ResourceForm = ({
         stackFit: resource.stackFit,
       });
 
+      console.log("Tagline generation result:", result);
+
       if (!result.success) {
         setTaglineError(result.error ?? "Failed to generate tagline.");
         return;
       }
 
+      if (!result.tagline?.trim()) {
+        setTaglineError("No tagline was generated.");
+        return;
+      }
+
       onTaglineGenerated(result.tagline);
-    } catch {
+    } catch (error) {
+      console.error("Generate tagline failed:", error);
       setTaglineError("Failed to generate tagline.");
     } finally {
       setIsGeneratingTagline(false);
@@ -381,6 +412,8 @@ const ResourceForm = ({
         stackFit: resource.stackFit,
       });
 
+      console.log("Metadata generation result:", result);
+
       if (!result.success) {
         setMetadataError(result.error ?? "Failed to generate metadata.");
         return;
@@ -392,7 +425,8 @@ const ResourceForm = ({
         useCases: result.useCases.join(", "),
         platforms: result.platforms.join(", "),
       });
-    } catch {
+    } catch (error) {
+      console.error("Generate metadata failed:", error);
       setMetadataError("Failed to generate metadata.");
     } finally {
       setIsGeneratingMetadata(false);

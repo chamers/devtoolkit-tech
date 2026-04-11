@@ -49,6 +49,7 @@ export type PreviewResource = {
   alternatives?: string | string[];
   useCases?: string | string[];
   logo?: string | null;
+  status?: "pending" | "published" | "rejected";
 };
 
 const toArray = (value: string | string[] | undefined | null) => {
@@ -116,6 +117,17 @@ const getDescriptionText = (description: unknown): string => {
   return "";
 };
 
+const getStatusClasses = (status: "pending" | "published" | "rejected") => {
+  switch (status) {
+    case "published":
+      return "border-green-200 bg-green-100 text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-300";
+    case "rejected":
+      return "border-red-200 bg-red-100 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300";
+    default:
+      return "border-yellow-200 bg-yellow-100 text-yellow-700 dark:border-yellow-900 dark:bg-yellow-950 dark:text-yellow-300";
+  }
+};
+
 const PreviewCard = ({
   resource,
   showFooter = true,
@@ -143,12 +155,7 @@ const PreviewCard = ({
   const alternativesText =
     alternatives.length > 0 ? alternatives.join(", ") : "No alternatives yet";
 
-  const useCasesText =
-    useCases.length > 0
-      ? useCases
-          .map((useCase) => getUseCaseLabel(useCase as ResourceUseCase))
-          .join(", ")
-      : "No use cases yet";
+  const status = resource.status ?? "pending";
 
   return (
     <Card className="group flex h-full w-full flex-col border bg-card shadow-sm transition-all hover:-translate-y-px hover:shadow-md">
@@ -171,9 +178,21 @@ const PreviewCard = ({
         </div>
 
         <div className="min-w-0 flex-1">
-          <CardTitle className="line-clamp-1 text-lg">
-            {resource.name || "Resource name"}
-          </CardTitle>
+          <div className="flex items-start justify-between gap-3">
+            <CardTitle className="line-clamp-1 text-lg">
+              {resource.name || "Resource name"}
+            </CardTitle>
+
+            <span
+              className={[
+                "inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-xs font-medium capitalize",
+                getStatusClasses(status),
+              ].join(" ")}
+            >
+              {status}
+            </span>
+          </div>
+
           <p className="line-clamp-1 text-sm text-muted-foreground">
             {categoryText}
           </p>
@@ -239,7 +258,7 @@ const PreviewCard = ({
                 </>
               ) : (
                 <span className="text-xs text-muted-foreground">
-                  {useCasesText}
+                  No use cases yet
                 </span>
               )}
             </div>

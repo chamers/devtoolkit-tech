@@ -36,11 +36,28 @@ export async function generateResourceDescriptionAction(
   try {
     const result = await aiGenerateResourceDescriptionFromForm(form);
 
+    // ✅ Debug logs (very important for now)
+    console.log("AI description result (server action):", result);
+    console.log("AI description text:", result?.description);
+
+    // ✅ Guard: empty response
+    if (!result?.description?.trim()) {
+      return {
+        success: false,
+        description: "",
+        error: "No description was generated.",
+      };
+    }
+
+    // ✅ Success
     return {
       success: true,
       description: result.description,
     };
   } catch (error) {
+    console.error("generateResourceDescriptionAction error:", error);
+
+    // ✅ Known AI error
     if (error instanceof GenerateResourceDescriptionError) {
       return {
         success: false,
@@ -49,10 +66,14 @@ export async function generateResourceDescriptionAction(
       };
     }
 
+    // ✅ Unknown error
     return {
       success: false,
       description: "",
-      error: "Something went wrong while generating the description.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while generating the description.",
     };
   }
 }
