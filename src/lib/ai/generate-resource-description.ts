@@ -186,6 +186,7 @@ export async function aiGenerateResourceDescriptionFromForm(
     return { description };
   } catch (error) {
     if (error instanceof GenerateResourceDescriptionError) {
+      console.error("aiGenerateResourceDescriptionFromForm failed:", error);
       throw error;
     }
 

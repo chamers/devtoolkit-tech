@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import type { JSONContent } from "@tiptap/core";
 import { Loader2, Send, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -328,20 +329,25 @@ const ResourceForm = ({
       console.log("Description generation result:", result);
 
       if (!result.success) {
-        setDescriptionError(result.error ?? "Failed to generate description.");
+        const message = result.error ?? "Failed to generate description.";
+        setDescriptionError(message);
+        toast.error(message);
         return;
       }
 
       if (!result.description?.trim()) {
-        setDescriptionError("No description was generated.");
+        const message = "No description was generated.";
+        setDescriptionError(message);
+        toast.error(message);
         return;
       }
-      console.log("Passing generated description to form:", result.description);
 
+      console.log("Passing generated description to form:", result.description);
       onDescriptionGenerated(createParagraphDoc(result.description));
     } catch (error) {
-      console.error("Generate description failed:", error);
+      console.error("Generate description failed in client:", error);
       setDescriptionError("Failed to generate description.");
+      toast.error("Failed to generate description.");
     } finally {
       setIsGeneratingDescription(false);
     }
@@ -372,12 +378,16 @@ const ResourceForm = ({
       console.log("Tagline generation result:", result);
 
       if (!result.success) {
-        setTaglineError(result.error ?? "Failed to generate tagline.");
+        const message = result.error ?? "Failed to generate tagline.";
+        setTaglineError(message);
+        toast.error(message);
         return;
       }
 
       if (!result.tagline?.trim()) {
-        setTaglineError("No tagline was generated.");
+        const message = "No tagline was generated.";
+        setTaglineError(message);
+        toast.error(message);
         return;
       }
 
@@ -385,6 +395,7 @@ const ResourceForm = ({
     } catch (error) {
       console.error("Generate tagline failed:", error);
       setTaglineError("Failed to generate tagline.");
+      toast.error("Failed to generate tagline.");
     } finally {
       setIsGeneratingTagline(false);
     }
@@ -415,7 +426,9 @@ const ResourceForm = ({
       console.log("Metadata generation result:", result);
 
       if (!result.success) {
-        setMetadataError(result.error ?? "Failed to generate metadata.");
+        const message = result.error ?? "Failed to generate metadata.";
+        setMetadataError(message);
+        toast.error(message);
         return;
       }
 
@@ -428,6 +441,7 @@ const ResourceForm = ({
     } catch (error) {
       console.error("Generate metadata failed:", error);
       setMetadataError("Failed to generate metadata.");
+      toast.error("Failed to generate metadata.");
     } finally {
       setIsGeneratingMetadata(false);
     }
