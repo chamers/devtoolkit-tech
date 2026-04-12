@@ -32,6 +32,7 @@ import type {
   ResourceUseCase,
 } from "@/utils/types/resource";
 import type { SerializedResource } from "@/app/actions/resource";
+import StarRating from "@/components/shared/star-rating";
 
 type PreviewResource =
   | Pick<
@@ -50,6 +51,7 @@ type PreviewResource =
       | "useCases"
       | "alternatives"
       | "logo"
+      | "communityRating"
     >
   | ResourceFormState;
 
@@ -134,6 +136,9 @@ const ResourceCard = ({ resource }: { resource: PreviewResource }) => {
           .join(", ")
       : "No use cases yet";
 
+  const ratingAverage = resource.communityRating?.average ?? 0;
+  const ratingCount = resource.communityRating?.count ?? 0;
+
   return (
     <Card className="group flex h-full w-full flex-col border bg-card shadow-sm transition-all hover:-translate-y-px hover:shadow-md">
       <CardHeader className="flex flex-row items-center gap-4">
@@ -166,6 +171,19 @@ const ResourceCard = ({ resource }: { resource: PreviewResource }) => {
 
       <CardContent className="flex-1 space-y-1">
         <p className="line-clamp-3 pb-4 text-sm">{descriptionText}</p>
+
+        <div className="pb-3">
+          {ratingCount > 0 ? (
+            <div className="flex items-center gap-2">
+              <StarRating rating={ratingAverage} size={16} />
+              <span className="text-sm text-muted-foreground">
+                {ratingAverage.toFixed(1)} ({ratingCount})
+              </span>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No ratings yet</p>
+          )}
+        </div>
 
         <div className="space-y-2">
           <InfoItem icon={BadgeInfo} label="Tagline" text={taglineText} />

@@ -5,6 +5,8 @@ import { getResourceBySlugFromDB } from "@/app/actions/resource";
 import ResourceHighlightCard from "@/components/resource/cards/resource-highlight-card";
 import SingleResourceCard from "@/components/resource/cards/single-resource-card";
 
+import ResourceRatingSection from "@/components/resource/ratings/resource-rating-section";
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "DevToolkit";
 
@@ -79,6 +81,14 @@ export async function generateMetadata({
   }
 
   const resource = result.data;
+  // const resource = {
+  //   ...result.data,
+  //   communityRating: {
+  //     average: 4.3,
+  //     count: 12,
+  //   },
+  // };
+
   const imageUrl = getImageUrl(resource.logo);
   const description = getResourceDescription(
     resource.description,
@@ -160,8 +170,15 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
 
       <div className="mx-1 md:m-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="order-2 md:order-1 md:col-span-2">
+          <div className="order-2 space-y-4 md:order-1 md:col-span-2">
             <SingleResourceCard resource={resource} />
+
+            <ResourceRatingSection
+              resourceId={resource._id}
+              slug={resource.slug}
+              average={resource.communityRating?.average ?? 0}
+              count={resource.communityRating?.count ?? 0}
+            />
           </div>
 
           <div className="order-1 md:order-2 md:col-span-1">

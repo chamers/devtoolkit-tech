@@ -37,19 +37,28 @@ function getErrorMessage(
   return error instanceof Error ? error.message : fallback;
 }
 
+type CommunityRatingPayload = {
+  communityRating: {
+    average: number;
+    count: number;
+  };
+};
+
 type ResourcePayload = ReturnType<typeof buildResourcePayload>;
 
-type ResourceDocumentLike = ResourcePayload & {
-  _id: mongoose.Types.ObjectId | string;
-  createdAt?: Date | string;
-  updatedAt?: Date | string;
-};
+type ResourceDocumentLike = ResourcePayload &
+  CommunityRatingPayload & {
+    _id: mongoose.Types.ObjectId | string;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+  };
 
-export type SerializedResource = ResourcePayload & {
-  _id: string;
-  createdAt: string;
-  updatedAt: string;
-};
+export type SerializedResource = ResourcePayload &
+  CommunityRatingPayload & {
+    _id: string;
+    createdAt: string;
+    updatedAt: string;
+  };
 
 export type PaginatedResources = {
   resources: SerializedResource[];
@@ -71,6 +80,7 @@ export type AutocompleteResource = {
 export type ResourceListFilters = {
   category?: string;
   tag?: string;
+  sort?: "latest" | "highest-rated";
 };
 
 const DEFAULT_RESOURCE_PAGE_SIZE = 12;
@@ -144,10 +154,7 @@ function buildResourcePayload(
     screenshots: normalizeStringArray(data.screenshots),
     headquarters: normalizeOptionalString(data.headquarters),
     country: normalizeOptionalString(data.country),
-    communityRating: {
-      average: data.communityRating?.average ?? 0,
-      count: data.communityRating?.count ?? 0,
-    },
+
     githubStats: {
       stars: data.githubStats?.stars ?? 0,
       forks: data.githubStats?.forks ?? 0,
@@ -240,7 +247,13 @@ export const saveResourceToDB = async (
 
     const user = userResult.data;
     const slug = await generateUniqueSlug(data.name);
-    const resourceToSave = buildResourcePayload(data, user, slug);
+    const resourceToSave = {
+      ...buildResourcePayload(data, user, slug),
+      communityRating: {
+        average: 0,
+        count: 0,
+      },
+    };
 
     const resource = await Resource.create(resourceToSave);
 
@@ -314,15 +327,21 @@ export const updateResourceInDB = async (
         ? existingResource.slug
         : await generateUniqueSlug(nextName, _id);
 
-    const updatePayload = buildResourcePayload(data, user, slug, {
-      status: existingResource.status,
-      published: existingResource.published,
-      approvedBy: existingResource.approvedBy,
-      approvedAt: existingResource.approvedAt,
-      rejectedBy: existingResource.rejectedBy,
-      rejectedAt: existingResource.rejectedAt,
-      rejectionReason: existingResource.rejectionReason,
-    });
+    const updatePayload = {
+      ...buildResourcePayload(data, user, slug, {
+        status: existingResource.status,
+        published: existingResource.published,
+        approvedBy: existingResource.approvedBy,
+        approvedAt: existingResource.approvedAt,
+        rejectedBy: existingResource.rejectedBy,
+        rejectedAt: existingResource.rejectedAt,
+        rejectionReason: existingResource.rejectionReason,
+      }),
+      communityRating: existingResource.communityRating ?? {
+        average: 0,
+        count: 0,
+      },
+    };
 
     const updatedResource = await Resource.findByIdAndUpdate(
       resourceObjectId,
@@ -519,6 +538,17 @@ export const getLatestResourcesFromDB = async (
     const safePage = Math.max(1, page);
     const safeLimit = Math.max(1, limit);
 
+    const sort: Record<string, 1 | -1> =
+      filters.sort === "highest-rated"
+        ? {
+            "communityRating.average": -1,
+            "communityRating.count": -1,
+            createdAt: -1,
+          }
+        : {
+            createdAt: -1,
+          };
+
     const query: {
       status: "published";
       category?: string;
@@ -537,7 +567,7 @@ export const getLatestResourcesFromDB = async (
 
     const [resources, totalCount] = await Promise.all([
       Resource.find(query)
-        .sort({ createdAt: -1 })
+        .sort(sort)
         .skip((safePage - 1) * safeLimit)
         .limit(safeLimit)
         .lean(),

@@ -16,6 +16,7 @@ interface ResourcesPageProps {
     page?: string;
     category?: string;
     tag?: string;
+    sort?: string;
   }>;
 }
 
@@ -36,7 +37,7 @@ export default async function ResourcesPage({
 
   const tagsResult = await getUniqueTagsFromDB();
   const tags = tagsResult.ok ? tagsResult.data : [];
-
+  const selectedSort = resolvedSearchParams?.sort?.trim() || "latest";
   if (query) {
     const result = await searchResourcesFromDB(query);
 
@@ -89,6 +90,27 @@ export default async function ResourcesPage({
                     </div>
                   </Link>
                 ))}
+                {/* {resources.map((resource) => {
+                  const mockResource = {
+                    ...resource,
+                    communityRating: {
+                      average: 4.3,
+                      count: 12,
+                    },
+                  };
+
+                  return (
+                    <Link
+                      key={resource._id}
+                      href={`/resources/${resource.slug}`}
+                      className="block h-full"
+                    >
+                      <div className="h-full transform transition duration-300 hover:scale-[1.02]">
+                        <ResourceCard resource={mockResource} />
+                      </div>
+                    </Link>
+                  );
+                })} */}
               </div>
             </div>
           )}
@@ -100,6 +122,7 @@ export default async function ResourcesPage({
   const resourcesResult = await getLatestResourcesFromDB(page, undefined, {
     category: selectedCategory,
     tag: selectedTag,
+    sort: selectedSort === "highest-rated" ? "highest-rated" : "latest",
   });
 
   if (!resourcesResult.ok) {

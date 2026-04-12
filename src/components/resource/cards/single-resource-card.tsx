@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCategoryLabel } from "@/utils/constants/resource-taxonomy";
 import type { SerializedResource } from "@/app/actions/resource";
 import RichTextRenderer from "../rich-text-renderer";
+import StarRating from "@/components/shared/star-rating";
 
 interface SingleResourceCardProps {
   resource: SerializedResource;
@@ -12,6 +13,9 @@ const SingleResourceCard = ({ resource }: SingleResourceCardProps) => {
   const categoryText = resource.category
     ? getCategoryLabel(resource.category)
     : "No category";
+
+  const ratingAverage = resource.communityRating?.average ?? 0;
+  const ratingCount = resource.communityRating?.count ?? 0;
 
   return (
     <Card className="mx-auto w-full max-w-2xl">
@@ -43,6 +47,19 @@ const SingleResourceCard = ({ resource }: SingleResourceCardProps) => {
         </div>
       </CardHeader>
       <CardContent className="text-sm mb-4">
+        <div className="mb-4">
+          {ratingCount > 0 ? (
+            <div className="flex items-center gap-3">
+              <StarRating rating={ratingAverage} />
+              <span className="text-sm text-muted-foreground">
+                {ratingAverage.toFixed(1)} ({ratingCount} rating
+                {ratingCount === 1 ? "" : "s"})
+              </span>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No ratings yet</p>
+          )}
+        </div>
         <RichTextRenderer content={resource.description} />
       </CardContent>
     </Card>
