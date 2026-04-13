@@ -13,12 +13,17 @@ import {
   Star,
   BadgeCheck,
   Copy,
+  ShieldAlert,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SerializedResource } from "@/app/actions/resource";
-import { getCategoryLabel } from "@/utils/constants/resource-taxonomy";
+import {
+  getCategoryLabel,
+  getMaintenanceStatusLabel,
+} from "@/utils/constants/resource-taxonomy";
+import type { ResourceMaintenanceStatus } from "@/utils/types/resource";
 import { cn } from "@/lib/utils";
 
 interface SingleResourceCardProps {
@@ -55,6 +60,11 @@ export default function ResourceHighlightCard({
 
   const hasGithubStars = (resource.githubStats?.stars ?? 0) > 0;
 
+  const maintenanceStatus = resource.maintenanceStatus;
+  const maintenanceNotes = resource.maintenanceNotes?.trim();
+  const showPublicMaintenanceBadge =
+    maintenanceStatus && maintenanceStatus !== "unknown";
+
   return (
     <aside className="space-y-6 rounded-2xl border bg-card p-5 shadow-sm">
       <div className="space-y-3">
@@ -71,7 +81,26 @@ export default function ResourceHighlightCard({
             <Badge variant="outline">{licenseLabel}</Badge>
           ) : null}
           {resource.featured ? <Badge>Featured</Badge> : null}
+
+          {showPublicMaintenanceBadge ? (
+            <Badge
+              className={getMaintenanceBadgeClassName(
+                maintenanceStatus as ResourceMaintenanceStatus,
+              )}
+            >
+              {getMaintenanceStatusLabel(
+                maintenanceStatus as ResourceMaintenanceStatus,
+              )}
+            </Badge>
+          ) : null}
         </div>
+
+        {showPublicMaintenanceBadge && maintenanceNotes ? (
+          <div className="flex items-start gap-2 rounded-xl border bg-muted/20 px-3 py-3 text-sm">
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            <p className="text-muted-foreground">{maintenanceNotes}</p>
+          </div>
+        ) : null}
       </div>
 
       <div className="space-y-3">
@@ -336,4 +365,29 @@ function formatCompactNumber(value: number): string {
     notation: "compact",
     maximumFractionDigits: 1,
   }).format(value);
+}
+
+function getMaintenanceBadgeClassName(status: ResourceMaintenanceStatus) {
+  switch (status) {
+    case "active":
+      return cn(
+        "border-green-200 bg-green-100 text-green-700",
+        "dark:border-green-900 dark:bg-green-950 dark:text-green-300",
+      );
+    case "outdated":
+      return cn(
+        "border-yellow-200 bg-yellow-100 text-yellow-700",
+        "dark:border-yellow-900 dark:bg-yellow-950 dark:text-yellow-300",
+      );
+    case "deprecated":
+      return cn(
+        "border-red-200 bg-red-100 text-red-700",
+        "dark:border-red-900 dark:bg-red-950 dark:text-red-300",
+      );
+    default:
+      return cn(
+        "border-slate-200 bg-slate-100 text-slate-700",
+        "dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300",
+      );
+  }
 }

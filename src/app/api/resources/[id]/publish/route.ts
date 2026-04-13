@@ -1,6 +1,6 @@
 // src/app/api/resources/[id]/publish/route.ts
 import { NextResponse } from "next/server";
-import { setPublishedStatusInDB } from "@/lib/server/resource-service";
+import { setPublishedStatusInDB } from "@/app/actions/resource";
 
 interface RouteContext {
   params: Promise<{

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   saveResourceToDB,
   getUserResourcesFromDB,
-} from "@/lib/server/resource-service";
+} from "@/app/actions/resource";
 
 export async function POST(request: Request) {
   try {

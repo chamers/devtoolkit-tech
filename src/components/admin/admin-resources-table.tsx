@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { SerializedResource } from "@/app/actions/resource";
+import { getMaintenanceStatusLabel } from "@/utils/constants/resource-taxonomy";
 import DeleteResourceButton from "./delete-resource-button";
 
 interface AdminResourcesTableProps {
@@ -19,6 +20,21 @@ const AdminResourcesTable = ({ resources }: AdminResourcesTableProps) => {
     }
   };
 
+  const getMaintenanceStatusClasses = (
+    status: SerializedResource["maintenanceStatus"],
+  ) => {
+    switch (status) {
+      case "active":
+        return "border-green-200 bg-green-100 text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-300";
+      case "outdated":
+        return "border-yellow-200 bg-yellow-100 text-yellow-700 dark:border-yellow-900 dark:bg-yellow-950 dark:text-yellow-300";
+      case "deprecated":
+        return "border-red-200 bg-red-100 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300";
+      default:
+        return "border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300";
+    }
+  };
+
   return (
     <table className="w-full text-sm">
       <thead className="bg-muted/50">
@@ -26,6 +42,7 @@ const AdminResourcesTable = ({ resources }: AdminResourcesTableProps) => {
           <th className="px-4 py-3 text-left font-medium">Resource</th>
           <th className="px-4 py-3 text-left font-medium">Category</th>
           <th className="px-4 py-3 text-left font-medium">Status</th>
+          <th className="px-4 py-3 text-left font-medium">Maintenance</th>
           <th className="px-4 py-3 text-left font-medium">Created</th>
           <th className="px-4 py-3 text-left font-medium">Actions</th>
         </tr>
@@ -72,6 +89,17 @@ const AdminResourcesTable = ({ resources }: AdminResourcesTableProps) => {
                   ].join(" ")}
                 >
                   {resource.status}
+                </span>
+              </td>
+
+              <td className="px-4 py-3">
+                <span
+                  className={[
+                    "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium capitalize",
+                    getMaintenanceStatusClasses(resource.maintenanceStatus),
+                  ].join(" ")}
+                >
+                  {getMaintenanceStatusLabel(resource.maintenanceStatus)}
                 </span>
               </td>
 

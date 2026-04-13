@@ -2,9 +2,10 @@ import { z } from "zod";
 import type { JSONContent } from "@tiptap/core";
 
 import {
+  RESOURCE_LICENSES,
   RESOURCE_CATEGORIES,
   RESOURCE_EVENT_TYPES,
-  RESOURCE_LICENSES,
+  RESOURCE_MAINTENANCE_STATUSES,
   RESOURCE_PLATFORMS,
   RESOURCE_PRICING,
   RESOURCE_USE_CASES,
@@ -17,6 +18,9 @@ const resourcePlatformValues = RESOURCE_PLATFORMS.map((item) => item.value);
 const resourceLicenseValues = RESOURCE_LICENSES.map((item) => item.value);
 const resourceUseCaseValues = RESOURCE_USE_CASES.map((item) => item.value);
 const resourceEventTypeValues = RESOURCE_EVENT_TYPES.map((item) => item.value);
+const resourceMaintenanceStatusValues = RESOURCE_MAINTENANCE_STATUSES.map(
+  (item) => item.value,
+);
 
 const includesString = (list: readonly string[], value: unknown): boolean =>
   typeof value === "string" && list.includes(value);
@@ -57,6 +61,12 @@ const resourceStatusEnum = z.union([
   z.literal("published"),
   z.literal("rejected"),
 ]);
+
+const resourceMaintenanceStatusEnum = z.custom<
+  ResourceInput["maintenanceStatus"]
+>((value) => includesString(resourceMaintenanceStatusValues, value), {
+  message: "Invalid maintenance status",
+});
 
 const allowedUseCases = new Set<string>(resourceUseCaseValues);
 const allowedPlatforms = new Set<string>(resourcePlatformValues);
@@ -242,6 +252,13 @@ export const resourceInputSchema: z.ZodType<ResourceInput> = z.object({
   featured: z.boolean().default(false),
   published: z.boolean().default(false),
   status: resourceStatusEnum.default("pending"),
+
+  maintenanceStatus: resourceMaintenanceStatusEnum.default("unknown"),
+  maintenanceNotes: optionalTrimmedString,
+  lastReviewedAt: z
+    .union([z.date(), z.string(), z.null()])
+    .optional()
+    .default(null),
 });
 
 export const resourceFormSchema: z.ZodType<ResourceFormState> = z.object({
@@ -298,6 +315,9 @@ export const resourceFormSchema: z.ZodType<ResourceFormState> = z.object({
   featured: z.boolean().default(false),
   published: z.boolean().default(false),
   status: resourceStatusEnum.default("pending"),
+
+  maintenanceStatus: resourceMaintenanceStatusEnum.default("unknown"),
+  maintenanceNotes: z.string().default(""),
 });
 
 export type ValidatedResourceInput = z.infer<typeof resourceInputSchema>;
@@ -409,6 +429,13 @@ export const normalizeResourceFormState = (
     featured: values.featured ?? false,
     published: values.published ?? false,
     status: values.status ?? "pending",
+
+    maintenanceStatus: values.maintenanceStatus ?? "unknown",
+    maintenanceNotes: values.maintenanceNotes?.trim() || undefined,
+    lastReviewedAt:
+      values.maintenanceStatus && values.maintenanceStatus !== "unknown"
+        ? new Date()
+        : null,
   };
 };
 

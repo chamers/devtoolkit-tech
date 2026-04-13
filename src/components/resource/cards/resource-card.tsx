@@ -23,12 +23,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   getCategoryLabel,
+  getMaintenanceStatusLabel,
   getPricingLabel,
   getUseCaseLabel,
 } from "@/utils/constants/resource-taxonomy";
 import type { LucideIcon } from "lucide-react";
 import type {
   ResourceFormState,
+  ResourceMaintenanceStatus,
   ResourceUseCase,
 } from "@/utils/types/resource";
 import type { SerializedResource } from "@/app/actions/resource";
@@ -52,6 +54,8 @@ type PreviewResource =
       | "alternatives"
       | "logo"
       | "communityRating"
+      | "maintenanceStatus"
+      | "maintenanceNotes"
     >
   | ResourceFormState;
 
@@ -139,6 +143,15 @@ const ResourceCard = ({ resource }: { resource: PreviewResource }) => {
   const ratingAverage = resource.communityRating?.average ?? 0;
   const ratingCount = resource.communityRating?.count ?? 0;
 
+  const maintenanceStatus = resource.maintenanceStatus;
+  const maintenanceNotes = resource.maintenanceNotes?.trim();
+  const showPublicMaintenanceBadge =
+    maintenanceStatus &&
+    maintenanceStatus !== "unknown" &&
+    maintenanceStatus !== "active";
+  const showPublicMaintenanceNotes =
+    showPublicMaintenanceBadge && maintenanceNotes?.length;
+
   return (
     <Card className="group flex h-full w-full flex-col border bg-card shadow-sm transition-all hover:-translate-y-px hover:shadow-md">
       <CardHeader className="flex flex-row items-center gap-4">
@@ -160,9 +173,24 @@ const ResourceCard = ({ resource }: { resource: PreviewResource }) => {
         </div>
 
         <div className="min-w-0 flex-1">
-          <CardTitle className="line-clamp-1 text-lg">
-            {resource.name || "Resource name"}
-          </CardTitle>
+          <div className="flex flex-wrap items-center gap-2">
+            <CardTitle className="line-clamp-1 text-lg">
+              {resource.name || "Resource name"}
+            </CardTitle>
+
+            {showPublicMaintenanceBadge ? (
+              <Badge
+                className={getMaintenanceBadgeClassName(
+                  maintenanceStatus as ResourceMaintenanceStatus,
+                )}
+              >
+                {getMaintenanceStatusLabel(
+                  maintenanceStatus as ResourceMaintenanceStatus,
+                )}
+              </Badge>
+            ) : null}
+          </div>
+
           <p className="line-clamp-1 text-sm text-muted-foreground">
             {categoryText}
           </p>
@@ -171,6 +199,12 @@ const ResourceCard = ({ resource }: { resource: PreviewResource }) => {
 
       <CardContent className="flex-1 space-y-1">
         <p className="line-clamp-3 pb-4 text-sm">{descriptionText}</p>
+
+        {showPublicMaintenanceNotes ? (
+          <p className="mb-3 line-clamp-2 text-xs text-muted-foreground">
+            {maintenanceNotes}
+          </p>
+        ) : null}
 
         <div className="pb-3">
           {ratingCount > 0 ? (
@@ -293,4 +327,17 @@ function InfoItem({
       <span className="line-clamp-2">{text}</span>
     </div>
   );
+}
+
+function getMaintenanceBadgeClassName(status: ResourceMaintenanceStatus) {
+  switch (status) {
+    case "active":
+      return "border-green-200 bg-green-100 text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-300";
+    case "outdated":
+      return "border-yellow-200 bg-yellow-100 text-yellow-700 dark:border-yellow-900 dark:bg-yellow-950 dark:text-yellow-300";
+    case "deprecated":
+      return "border-red-200 bg-red-100 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300";
+    default:
+      return "border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300";
+  }
 }

@@ -13,6 +13,7 @@ import RichTextEditor from "@/components/editor/rich-text-editor";
 import {
   RESOURCE_CATEGORIES,
   RESOURCE_LICENSES,
+  RESOURCE_MAINTENANCE_STATUSES,
   RESOURCE_PLATFORMS,
   RESOURCE_PRICING,
   RESOURCE_USE_CASES,
@@ -66,6 +67,11 @@ const pricingOptions = RESOURCE_PRICING.map((item) => ({
 }));
 
 const licenseOptions = RESOURCE_LICENSES.map((item) => ({
+  label: item.label,
+  value: item.value,
+}));
+
+const maintenanceStatusOptions = RESOURCE_MAINTENANCE_STATUSES.map((item) => ({
   label: item.label,
   value: item.value,
 }));
@@ -146,6 +152,22 @@ const inputFields: InputField[] = [
     placeholder: "Select license",
     required: false,
     options: licenseOptions,
+  },
+  {
+    name: "maintenanceStatus",
+    label: "Maintenance Status",
+    type: "select",
+    placeholder: "Select maintenance status",
+    required: false,
+    options: maintenanceStatusOptions,
+  },
+  {
+    name: "maintenanceNotes",
+    label: "Maintenance Notes",
+    type: "textarea",
+    placeholder:
+      "Optional note about whether the resource is current, outdated, or deprecated",
+    required: false,
   },
   {
     name: "tags",
@@ -523,6 +545,18 @@ const ResourceForm = ({
                 </option>
               ))}
             </select>
+          ) : item.type === "textarea" ? (
+            <textarea
+              id={item.name}
+              name={item.name}
+              placeholder={item.placeholder}
+              required={item.required}
+              onChange={onChange}
+              value={String(getValue(item.name))}
+              disabled={loading || isGenerating}
+              rows={4}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+            />
           ) : (
             <Input
               id={item.name}

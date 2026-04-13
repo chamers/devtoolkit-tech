@@ -5,6 +5,7 @@ import {
   RESOURCE_CATEGORIES,
   RESOURCE_EVENT_TYPES,
   RESOURCE_LICENSES,
+  RESOURCE_MAINTENANCE_STATUSES,
   RESOURCE_PLATFORMS,
   RESOURCE_PRICING,
   RESOURCE_USE_CASES,
@@ -17,6 +18,7 @@ import type {
   ResourceLicense,
   ResourceUseCase,
   ResourceEventType,
+  ResourceMaintenanceStatus,
 } from "@/utils/types/resource";
 
 export type ResourceStatus = "pending" | "published" | "rejected";
@@ -80,6 +82,9 @@ export interface IResource extends Document {
   createdAt: Date;
   updatedAt: Date;
   status: ResourceStatus;
+  maintenanceStatus: ResourceMaintenanceStatus;
+  maintenanceNotes?: string;
+  lastReviewedAt?: Date | null;
   approvedBy?: string;
   approvedAt?: Date | null;
   rejectedBy?: string;
@@ -93,6 +98,9 @@ const resourcePlatformValues = RESOURCE_PLATFORMS.map((item) => item.value);
 const resourceLicenseValues = RESOURCE_LICENSES.map((item) => item.value);
 const resourceUseCaseValues = RESOURCE_USE_CASES.map((item) => item.value);
 const resourceEventTypeValues = RESOURCE_EVENT_TYPES.map((item) => item.value);
+const resourceMaintenanceStatusValues = RESOURCE_MAINTENANCE_STATUSES.map(
+  (item) => item.value,
+);
 
 const ResourceSchema = new Schema<IResource>(
   {
@@ -194,11 +202,30 @@ const ResourceSchema = new Schema<IResource>(
 
     featured: { type: Boolean, default: false, index: true },
     published: { type: Boolean, default: false, index: true },
+
     status: {
       type: String,
       enum: ["pending", "published", "rejected"],
       default: "pending",
       index: true,
+    },
+
+    maintenanceStatus: {
+      type: String,
+      enum: resourceMaintenanceStatusValues,
+      default: "unknown",
+      index: true,
+    },
+
+    maintenanceNotes: {
+      type: String,
+      trim: true,
+      default: undefined,
+    },
+
+    lastReviewedAt: {
+      type: Date,
+      default: null,
     },
 
     approvedBy: { type: String, default: undefined },
@@ -230,6 +257,7 @@ ResourceSchema.index(
 );
 
 ResourceSchema.index({ status: 1, published: 1, name: 1 });
+ResourceSchema.index({ maintenanceStatus: 1, published: 1, name: 1 });
 
 const Resource =
   models.Resource || model<IResource>("Resource", ResourceSchema);

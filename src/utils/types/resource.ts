@@ -4,6 +4,7 @@ import {
   RESOURCE_CATEGORIES,
   RESOURCE_EVENT_TYPES,
   RESOURCE_LICENSES,
+  RESOURCE_MAINTENANCE_STATUSES,
   RESOURCE_PLATFORMS,
   RESOURCE_PRICING,
   RESOURCE_USE_CASES,
@@ -15,6 +16,10 @@ export type ResourcePlatform = (typeof RESOURCE_PLATFORMS)[number]["value"];
 export type ResourceLicense = (typeof RESOURCE_LICENSES)[number]["value"];
 export type ResourceUseCase = (typeof RESOURCE_USE_CASES)[number]["value"];
 export type ResourceEventType = (typeof RESOURCE_EVENT_TYPES)[number]["value"];
+export type ResourceMaintenanceStatus =
+  (typeof RESOURCE_MAINTENANCE_STATUSES)[number]["value"];
+
+export type ResourceStatus = "pending" | "published" | "rejected";
 
 export interface GithubStats {
   stars: number;
@@ -97,6 +102,10 @@ export interface ResourceBase {
   published: boolean;
 
   status: ResourceStatus;
+  maintenanceStatus: ResourceMaintenanceStatus;
+  maintenanceNotes?: string;
+  lastReviewedAt?: Date | string | null;
+
   approvedBy?: string;
   approvedAt?: Date | string | null;
   rejectedBy?: string;
@@ -114,6 +123,7 @@ export interface ResourceFormState extends Omit<
   | "license"
   | "logo"
   | "descriptionText"
+  | "lastReviewedAt"
   | "approvedBy"
   | "approvedAt"
   | "rejectedBy"
@@ -132,6 +142,8 @@ export interface ResourceFormState extends Omit<
 
   logo: string;
   logoMode: "upload" | "url";
+
+  maintenanceNotes: string;
 }
 
 export interface ResourceInput extends Omit<ResourceBase, "descriptionText"> {
@@ -237,6 +249,6 @@ export const defaultResourceFormState: ResourceFormState = {
   published: false,
 
   status: "pending",
+  maintenanceStatus: "unknown",
+  maintenanceNotes: "",
 };
-
-export type ResourceStatus = "pending" | "published" | "rejected";

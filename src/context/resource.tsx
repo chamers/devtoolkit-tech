@@ -91,6 +91,8 @@ const mapResourceToFormState = (
     screenshots: Array.isArray(input.screenshots)
       ? input.screenshots.join(", ")
       : (input.screenshots ?? ""),
+    maintenanceNotes:
+      typeof input.maintenanceNotes === "string" ? input.maintenanceNotes : "",
     comparisonTargets: Array.isArray(input.comparisonTargets)
       ? input.comparisonTargets
       : [],
@@ -440,11 +442,13 @@ export const ResourceProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       setLoading(true);
       setError(null);
+
       console.log(
         "Description before validation:",
         JSON.stringify(resource.description, null, 2),
       );
       console.log("Resource before validation:", resource);
+
       const formValidation = validateResourceFormState(resource);
 
       if (!formValidation.success) {

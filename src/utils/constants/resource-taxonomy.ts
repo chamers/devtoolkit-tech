@@ -157,6 +157,13 @@ export const RESOURCE_EVENT_TYPES = [
   { value: "webinar", label: "Webinar", slug: "webinar" },
 ] as const satisfies readonly TaxonomyOption<string>[];
 
+export const RESOURCE_MAINTENANCE_STATUSES = [
+  { value: "active", label: "Active", slug: "active" },
+  { value: "outdated", label: "Outdated", slug: "outdated" },
+  { value: "deprecated", label: "Deprecated", slug: "deprecated" },
+  { value: "unknown", label: "Unknown", slug: "unknown" },
+] as const satisfies readonly TaxonomyOption<string>[];
+
 // Reusable helper exports
 export const categoryTaxonomy = createTaxonomyHelpers(RESOURCE_CATEGORIES);
 export const pricingTaxonomy = createTaxonomyHelpers(RESOURCE_PRICING);
@@ -164,6 +171,9 @@ export const platformTaxonomy = createTaxonomyHelpers(RESOURCE_PLATFORMS);
 export const licenseTaxonomy = createTaxonomyHelpers(RESOURCE_LICENSES);
 export const useCaseTaxonomy = createTaxonomyHelpers(RESOURCE_USE_CASES);
 export const eventTypeTaxonomy = createTaxonomyHelpers(RESOURCE_EVENT_TYPES);
+export const maintenanceStatusTaxonomy = createTaxonomyHelpers(
+  RESOURCE_MAINTENANCE_STATUSES,
+);
 
 // Handy direct helper exports
 export const getCategoryLabel = categoryTaxonomy.getLabel;
@@ -177,3 +187,8 @@ export const getPricingValueBySlug = pricingTaxonomy.getValueBySlug;
 export const getUseCaseLabel = useCaseTaxonomy.getLabel;
 export const getUseCaseSlug = useCaseTaxonomy.getSlug;
 export const getUseCaseValueBySlug = useCaseTaxonomy.getValueBySlug;
+
+export const getMaintenanceStatusLabel = maintenanceStatusTaxonomy.getLabel;
+export const getMaintenanceStatusSlug = maintenanceStatusTaxonomy.getSlug;
+export const getMaintenanceStatusValueBySlug =
+  maintenanceStatusTaxonomy.getValueBySlug;

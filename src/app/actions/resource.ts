@@ -125,6 +125,9 @@ function buildResourcePayload(
   overrides?: Partial<{
     status: "pending" | "published" | "rejected";
     published: boolean;
+    maintenanceStatus: ResourceInput["maintenanceStatus"];
+    maintenanceNotes?: string;
+    lastReviewedAt?: Date | string | null;
     approvedBy?: string;
     approvedAt?: Date | null;
     rejectedBy?: string;
@@ -162,10 +165,12 @@ function buildResourcePayload(
       lastCommitDate: data.githubStats?.lastCommitDate ?? null,
       repository: normalizeOptionalString(data.githubStats?.repository),
     },
+
     comparisonTargets: (data.comparisonTargets ?? []).map((item) => ({
       slug: item.slug.trim(),
       label: item.label.trim(),
     })),
+
     stackFit: {
       frontend: data.stackFit?.frontend ?? false,
       backend: data.stackFit?.backend ?? false,
@@ -175,6 +180,7 @@ function buildResourcePayload(
       testing: data.stackFit?.testing ?? false,
       ai: data.stackFit?.ai ?? false,
     },
+
     developerEvents: (data.developerEvents ?? []).map((event) => ({
       name: event.name.trim(),
       type: event.type,
@@ -191,9 +197,23 @@ function buildResourcePayload(
           }
         : undefined,
     })),
+
     featured: data.featured ?? false,
     status: overrides?.status ?? "pending",
     published: overrides?.published ?? false,
+
+    maintenanceStatus:
+      overrides?.maintenanceStatus ?? data.maintenanceStatus ?? "unknown",
+    maintenanceNotes:
+      normalizeOptionalString(overrides?.maintenanceNotes) ??
+      normalizeOptionalString(data.maintenanceNotes),
+    lastReviewedAt:
+      overrides?.lastReviewedAt ??
+      data.lastReviewedAt ??
+      (data.maintenanceStatus && data.maintenanceStatus !== "unknown"
+        ? new Date()
+        : null),
+
     approvedBy: overrides?.approvedBy,
     approvedAt: overrides?.approvedAt ?? null,
     rejectedBy: overrides?.rejectedBy,
@@ -201,6 +221,7 @@ function buildResourcePayload(
     rejectionReason: overrides?.rejectionReason,
   };
 }
+
 function serializeResource(resource: ResourceDocumentLike): SerializedResource {
   return {
     ...resource,
@@ -213,6 +234,10 @@ function serializeResource(resource: ResourceDocumentLike): SerializedResource {
       resource.updatedAt instanceof Date
         ? resource.updatedAt.toISOString()
         : (resource.updatedAt ?? ""),
+    lastReviewedAt:
+      resource.lastReviewedAt instanceof Date
+        ? resource.lastReviewedAt.toISOString()
+        : (resource.lastReviewedAt ?? null),
   };
 }
 
@@ -247,6 +272,7 @@ export const saveResourceToDB = async (
 
     const user = userResult.data;
     const slug = await generateUniqueSlug(data.name);
+
     const resourceToSave = {
       ...buildResourcePayload(data, user, slug),
       communityRating: {
@@ -292,7 +318,6 @@ export const updateResourceInDB = async (
     }
 
     const user = userResult.data;
-
     const isAdmin = user.publicMetadata?.role === "admin";
 
     const existingResource = await Resource.findById(resourceObjectId).lean();
@@ -331,6 +356,15 @@ export const updateResourceInDB = async (
       ...buildResourcePayload(data, user, slug, {
         status: existingResource.status,
         published: existingResource.published,
+        maintenanceStatus:
+          data.maintenanceStatus ?? existingResource.maintenanceStatus,
+        maintenanceNotes:
+          data.maintenanceNotes ?? existingResource.maintenanceNotes,
+        lastReviewedAt:
+          data.maintenanceStatus &&
+          data.maintenanceStatus !== existingResource.maintenanceStatus
+            ? new Date()
+            : (existingResource.lastReviewedAt ?? null),
         approvedBy: existingResource.approvedBy,
         approvedAt: existingResource.approvedAt,
         rejectedBy: existingResource.rejectedBy,

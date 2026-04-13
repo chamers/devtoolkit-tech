@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  getResourceFromDB,
-  updateResourceInDB,
-} from "@/lib/server/resource-service";
+import { getResourceFromDB, updateResourceInDB } from "@/app/actions/resource";
 
 interface RouteContext {
   params: Promise<{
