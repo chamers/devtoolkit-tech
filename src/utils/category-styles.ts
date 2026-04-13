@@ -4,6 +4,7 @@ export type ResourceCategoryStyle = {
   badge: string;
   iconBg: string;
   hoverGlow: string;
+  footerButton: string;
 };
 
 export const DEFAULT_CATEGORY_STYLE: ResourceCategoryStyle = {
@@ -19,6 +20,12 @@ export const DEFAULT_CATEGORY_STYLE: ResourceCategoryStyle = {
   `,
   iconBg: "bg-muted",
   hoverGlow: "hover:shadow-md",
+  footerButton: `
+    border-border
+    bg-background/80
+    hover:bg-muted
+    hover:border-border
+  `,
 };
 
 export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
@@ -35,6 +42,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-sky-100 dark:bg-sky-900/40",
     hoverGlow: "hover:shadow-sky-100 dark:hover:shadow-sky-950/30",
+    footerButton: `
+      border-sky-200/70 dark:border-sky-800/70
+      bg-background/80
+      hover:bg-sky-50 dark:hover:bg-sky-950/30
+      hover:border-sky-300 dark:hover:border-sky-700
+    `,
   },
 
   backend: {
@@ -50,6 +63,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-emerald-100 dark:bg-emerald-900/40",
     hoverGlow: "hover:shadow-emerald-100 dark:hover:shadow-emerald-950/30",
+    footerButton: `
+      border-emerald-200/70 dark:border-emerald-800/70
+      bg-background/80
+      hover:bg-emerald-50 dark:hover:bg-emerald-950/30
+      hover:border-emerald-300 dark:hover:border-emerald-700
+    `,
   },
 
   fullstack: {
@@ -65,6 +84,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-violet-100 dark:bg-violet-900/40",
     hoverGlow: "hover:shadow-violet-100 dark:hover:shadow-violet-950/30",
+    footerButton: `
+      border-violet-200/70 dark:border-violet-800/70
+      bg-background/80
+      hover:bg-violet-50 dark:hover:bg-violet-950/30
+      hover:border-violet-300 dark:hover:border-violet-700
+    `,
   },
 
   devops: {
@@ -80,6 +105,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-orange-100 dark:bg-orange-900/40",
     hoverGlow: "hover:shadow-orange-100 dark:hover:shadow-orange-950/30",
+    footerButton: `
+      border-orange-200/70 dark:border-orange-800/70
+      bg-background/80
+      hover:bg-orange-50 dark:hover:bg-orange-950/30
+      hover:border-orange-300 dark:hover:border-orange-700
+    `,
   },
 
   testing: {
@@ -95,6 +126,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-amber-100 dark:bg-amber-900/40",
     hoverGlow: "hover:shadow-amber-100 dark:hover:shadow-amber-950/30",
+    footerButton: `
+      border-amber-200/70 dark:border-amber-800/70
+      bg-background/80
+      hover:bg-amber-50 dark:hover:bg-amber-950/30
+      hover:border-amber-300 dark:hover:border-amber-700
+    `,
   },
 
   database: {
@@ -110,6 +147,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-cyan-100 dark:bg-cyan-900/40",
     hoverGlow: "hover:shadow-cyan-100 dark:hover:shadow-cyan-950/30",
+    footerButton: `
+      border-cyan-200/70 dark:border-cyan-800/70
+      bg-background/80
+      hover:bg-cyan-50 dark:hover:bg-cyan-950/30
+      hover:border-cyan-300 dark:hover:border-cyan-700
+    `,
   },
 
   design: {
@@ -125,6 +168,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-pink-100 dark:bg-pink-900/40",
     hoverGlow: "hover:shadow-pink-100 dark:hover:shadow-pink-950/30",
+    footerButton: `
+      border-pink-200/70 dark:border-pink-800/70
+      bg-background/80
+      hover:bg-pink-50 dark:hover:bg-pink-950/30
+      hover:border-pink-300 dark:hover:border-pink-700
+    `,
   },
 
   api: {
@@ -140,6 +189,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-indigo-100 dark:bg-indigo-900/40",
     hoverGlow: "hover:shadow-indigo-100 dark:hover:shadow-indigo-950/30",
+    footerButton: `
+      border-indigo-200/70 dark:border-indigo-800/70
+      bg-background/80
+      hover:bg-indigo-50 dark:hover:bg-indigo-950/30
+      hover:border-indigo-300 dark:hover:border-indigo-700
+    `,
   },
 
   cms: {
@@ -155,6 +210,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-lime-100 dark:bg-lime-900/40",
     hoverGlow: "hover:shadow-lime-100 dark:hover:shadow-lime-950/30",
+    footerButton: `
+      border-lime-200/70 dark:border-lime-800/70
+      bg-background/80
+      hover:bg-lime-50 dark:hover:bg-lime-950/30
+      hover:border-lime-300 dark:hover:border-lime-700
+    `,
   },
 
   hosting: {
@@ -170,6 +231,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-teal-100 dark:bg-teal-900/40",
     hoverGlow: "hover:shadow-teal-100 dark:hover:shadow-teal-950/30",
+    footerButton: `
+      border-teal-200/70 dark:border-teal-800/70
+      bg-background/80
+      hover:bg-teal-50 dark:hover:bg-teal-950/30
+      hover:border-teal-300 dark:hover:border-teal-700
+    `,
   },
 
   authentication: {
@@ -185,6 +252,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-rose-100 dark:bg-rose-900/40",
     hoverGlow: "hover:shadow-rose-100 dark:hover:shadow-rose-950/30",
+    footerButton: `
+      border-rose-200/70 dark:border-rose-800/70
+      bg-background/80
+      hover:bg-rose-50 dark:hover:bg-rose-950/30
+      hover:border-rose-300 dark:hover:border-rose-700
+    `,
   },
 
   ai: {
@@ -200,6 +273,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-fuchsia-100 dark:bg-fuchsia-900/40",
     hoverGlow: "hover:shadow-fuchsia-100 dark:hover:shadow-fuchsia-950/30",
+    footerButton: `
+      border-fuchsia-200/70 dark:border-fuchsia-800/70
+      bg-background/80
+      hover:bg-fuchsia-50 dark:hover:bg-fuchsia-950/30
+      hover:border-fuchsia-300 dark:hover:border-fuchsia-700
+    `,
   },
 
   analytics: {
@@ -215,6 +294,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-blue-100 dark:bg-blue-900/40",
     hoverGlow: "hover:shadow-blue-100 dark:hover:shadow-blue-950/30",
+    footerButton: `
+      border-blue-200/70 dark:border-blue-800/70
+      bg-background/80
+      hover:bg-blue-50 dark:hover:bg-blue-950/30
+      hover:border-blue-300 dark:hover:border-blue-700
+    `,
   },
 
   productivity: {
@@ -230,6 +315,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-purple-100 dark:bg-purple-900/40",
     hoverGlow: "hover:shadow-purple-100 dark:hover:shadow-purple-950/30",
+    footerButton: `
+      border-purple-200/70 dark:border-purple-800/70
+      bg-background/80
+      hover:bg-purple-50 dark:hover:bg-purple-950/30
+      hover:border-purple-300 dark:hover:border-purple-700
+    `,
   },
 
   security: {
@@ -245,6 +336,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-red-100 dark:bg-red-900/40",
     hoverGlow: "hover:shadow-red-100 dark:hover:shadow-red-950/30",
+    footerButton: `
+      border-red-200/70 dark:border-red-800/70
+      bg-background/80
+      hover:bg-red-50 dark:hover:bg-red-950/30
+      hover:border-red-300 dark:hover:border-red-700
+    `,
   },
 
   mobile: {
@@ -260,6 +357,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-slate-100 dark:bg-slate-800",
     hoverGlow: "hover:shadow-slate-200 dark:hover:shadow-slate-900/30",
+    footerButton: `
+      border-slate-300/70 dark:border-slate-700/70
+      bg-background/80
+      hover:bg-slate-50 dark:hover:bg-slate-900/50
+      hover:border-slate-400 dark:hover:border-slate-600
+    `,
   },
 
   deployment: {
@@ -275,6 +378,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-yellow-100 dark:bg-yellow-900/40",
     hoverGlow: "hover:shadow-yellow-100 dark:hover:shadow-yellow-950/30",
+    footerButton: `
+      border-yellow-200/70 dark:border-yellow-800/70
+      bg-background/80
+      hover:bg-yellow-50 dark:hover:bg-yellow-950/30
+      hover:border-yellow-300 dark:hover:border-yellow-700
+    `,
   },
 
   monitoring: {
@@ -290,6 +399,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-green-100 dark:bg-green-900/40",
     hoverGlow: "hover:shadow-green-100 dark:hover:shadow-green-950/30",
+    footerButton: `
+      border-green-200/70 dark:border-green-800/70
+      bg-background/80
+      hover:bg-green-50 dark:hover:bg-green-950/30
+      hover:border-green-300 dark:hover:border-green-700
+    `,
   },
 
   collaboration: {
@@ -305,6 +420,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-violet-100 dark:bg-violet-900/40",
     hoverGlow: "hover:shadow-violet-100 dark:hover:shadow-violet-950/30",
+    footerButton: `
+      border-violet-200/70 dark:border-violet-800/70
+      bg-background/80
+      hover:bg-violet-50 dark:hover:bg-violet-950/30
+      hover:border-violet-300 dark:hover:border-violet-700
+    `,
   },
 
   learning: {
@@ -320,6 +441,12 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
     `,
     iconBg: "bg-emerald-100 dark:bg-emerald-900/40",
     hoverGlow: "hover:shadow-emerald-100 dark:hover:shadow-emerald-950/30",
+    footerButton: `
+      border-emerald-200/70 dark:border-emerald-800/70
+      bg-background/80
+      hover:bg-emerald-50 dark:hover:bg-emerald-950/30
+      hover:border-emerald-300 dark:hover:border-emerald-700
+    `,
   },
 };
 
