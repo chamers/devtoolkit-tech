@@ -12,6 +12,8 @@ import {
   Github,
   BookOpen,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
 import {
   Card,
   CardContent,
@@ -27,7 +29,6 @@ import {
   getPricingLabel,
   getUseCaseLabel,
 } from "@/utils/constants/resource-taxonomy";
-import type { LucideIcon } from "lucide-react";
 import type {
   ResourceFormState,
   ResourceMaintenanceStatus,
@@ -35,6 +36,7 @@ import type {
 } from "@/utils/types/resource";
 import type { SerializedResource } from "@/app/actions/resource";
 import StarRating from "@/components/shared/star-rating";
+import { getCategoryStyle } from "@/utils/category-styles";
 
 type PreviewResource =
   | Pick<
@@ -113,6 +115,8 @@ const extractTextFromRichText = (
 };
 
 const ResourceCard = ({ resource }: { resource: PreviewResource }) => {
+  const categoryStyle = getCategoryStyle(resource.category);
+
   const tags = toArray(resource.tags);
   const alternatives = toArray(resource.alternatives);
   const useCases = toArray(resource.useCases);
@@ -153,9 +157,26 @@ const ResourceCard = ({ resource }: { resource: PreviewResource }) => {
     showPublicMaintenanceBadge && maintenanceNotes?.length;
 
   return (
-    <Card className="group flex h-full w-full flex-col border bg-card shadow-sm transition-all hover:-translate-y-px hover:shadow-md">
-      <CardHeader className="flex flex-row items-center gap-4">
-        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border bg-muted shadow-sm">
+    <Card
+      className={[
+        "group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border shadow-sm transition-all duration-300",
+        "hover:-translate-y-1 hover:shadow-xl",
+        categoryStyle.card,
+        categoryStyle.hoverGlow,
+      ].join(" ")}
+    >
+      <div
+        className={`absolute inset-y-0 left-0 w-1 ${categoryStyle.accent}`}
+        aria-hidden="true"
+      />
+
+      <CardHeader className="flex flex-row items-center gap-4 pl-6">
+        <div
+          className={[
+            "relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border shadow-sm",
+            categoryStyle.iconBg,
+          ].join(" ")}
+        >
           {resource.logo ? (
             <Image
               src={resource.logo}
@@ -178,6 +199,15 @@ const ResourceCard = ({ resource }: { resource: PreviewResource }) => {
               {resource.name || "Resource name"}
             </CardTitle>
 
+            <Badge
+              className={[
+                "rounded-full border px-2.5 py-1 text-xs font-medium",
+                categoryStyle.badge,
+              ].join(" ")}
+            >
+              {categoryText}
+            </Badge>
+
             {showPublicMaintenanceBadge ? (
               <Badge
                 className={getMaintenanceBadgeClassName(
@@ -192,12 +222,12 @@ const ResourceCard = ({ resource }: { resource: PreviewResource }) => {
           </div>
 
           <p className="line-clamp-1 text-sm text-muted-foreground">
-            {categoryText}
+            {resource.tagline || "No tagline yet"}
           </p>
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 space-y-1">
+      <CardContent className="flex-1 space-y-1 pl-6">
         <p className="line-clamp-3 pb-4 text-sm">{descriptionText}</p>
 
         {showPublicMaintenanceNotes ? (
@@ -276,14 +306,16 @@ const ResourceCard = ({ resource }: { resource: PreviewResource }) => {
                   )}
                 </>
               ) : (
-                <span>{useCasesText}</span>
+                <span className="text-xs text-muted-foreground">
+                  {useCasesText}
+                </span>
               )}
             </div>
           </div>
         </div>
       </CardContent>
 
-      <CardFooter className="mt-auto flex flex-wrap gap-2 border-t pt-3 opacity-80 transition-all duration-200 group-hover:-translate-y-px group-hover:opacity-100">
+      <CardFooter className="mt-auto flex flex-wrap gap-2 border-t pt-3 pl-6 opacity-80 transition-all duration-200 group-hover:opacity-100">
         {resource.website && (
           <Button type="button" variant="outline" size="sm" className="gap-2">
             <Globe className="h-4 w-4" />
