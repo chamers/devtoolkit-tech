@@ -292,3 +292,9 @@
   margin: 0.75rem 0;
   color: var(--muted-foreground);
 }
+
+@layer utilities {
+  .font-handwritten {
+    font-family: var(--font-handwritten);
+  }
+}

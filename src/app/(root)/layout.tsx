@@ -5,7 +5,7 @@ const LandingPageLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex min-h-screen flex-col">
       <div
-        className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-10 transition-opacity duration-300"
+        className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-30 transition-opacity duration-300"
         style={{ backgroundImage: 'url("/images/hero.png")' }}
       />
 

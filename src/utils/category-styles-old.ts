@@ -1,6 +1,5 @@
 export type ResourceCategoryStyle = {
   card: string;
-  headerBg: string;
   accent: string;
   badge: string;
   iconBg: string;
@@ -12,9 +11,6 @@ export const DEFAULT_CATEGORY_STYLE: ResourceCategoryStyle = {
   card: `
     border-border
     bg-card
-  `,
-  headerBg: `
-    bg-muted/60 dark:bg-muted/30
   `,
   accent: "bg-muted",
   badge: `
@@ -36,11 +32,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   frontend: {
     card: `
       border-sky-200/70 dark:border-sky-900/60
-      bg-sky-50/70 dark:bg-sky-950/20
+      bg-gradient-to-br from-sky-50 via-background to-background
+      dark:from-sky-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `
-    bg-sky-200 dark:bg-sky-950/40
-  `,
     accent: "bg-sky-500",
     badge: `
       border-sky-200 bg-sky-100 text-sky-700
@@ -59,9 +53,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   backend: {
     card: `
       border-emerald-200/70 dark:border-emerald-900/60
-      bg-emerald-50/70 dark:bg-emerald-950/20
+      bg-gradient-to-br from-emerald-50 via-background to-background
+      dark:from-emerald-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-emerald-200 dark:bg-emerald-950/40`,
     accent: "bg-emerald-500",
     badge: `
       border-emerald-200 bg-emerald-100 text-emerald-700
@@ -80,9 +74,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   fullstack: {
     card: `
       border-violet-200/70 dark:border-violet-900/60
-      bg-violet-50/70 dark:bg-violet-950/20
+      bg-gradient-to-br from-violet-50 via-background to-background
+      dark:from-violet-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-violet-200 dark:bg-violet-950/40`,
     accent: "bg-violet-500",
     badge: `
       border-violet-200 bg-violet-100 text-violet-700
@@ -101,9 +95,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   devops: {
     card: `
       border-orange-200/70 dark:border-orange-900/60
-      bg-orange-50/70 dark:bg-orange-950/20
+      bg-gradient-to-br from-orange-50 via-background to-background
+      dark:from-orange-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-orange-200 dark:bg-orange-950/40`,
     accent: "bg-orange-500",
     badge: `
       border-orange-200 bg-orange-100 text-orange-700
@@ -122,9 +116,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   testing: {
     card: `
       border-amber-200/70 dark:border-amber-900/60
-      bg-amber-50/70 dark:bg-amber-950/20
+      bg-gradient-to-br from-amber-50 via-background to-background
+      dark:from-amber-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-amber-200 dark:bg-amber-950/40`,
     accent: "bg-amber-500",
     badge: `
       border-amber-200 bg-amber-100 text-amber-700
@@ -143,9 +137,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   database: {
     card: `
       border-cyan-200/70 dark:border-cyan-900/60
-      bg-cyan-50/70 dark:bg-cyan-950/20
+      bg-gradient-to-br from-cyan-50 via-background to-background
+      dark:from-cyan-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-cyan-200 dark:bg-cyan-950/40`,
     accent: "bg-cyan-500",
     badge: `
       border-cyan-200 bg-cyan-100 text-cyan-700
@@ -164,9 +158,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   design: {
     card: `
       border-pink-200/70 dark:border-pink-900/60
-      bg-pink-50/70 dark:bg-pink-950/20
+      bg-gradient-to-br from-pink-50 via-background to-background
+      dark:from-pink-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-pink-200 dark:bg-pink-950/40`,
     accent: "bg-pink-500",
     badge: `
       border-pink-200 bg-pink-100 text-pink-700
@@ -185,9 +179,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   api: {
     card: `
       border-indigo-200/70 dark:border-indigo-900/60
-      bg-indigo-50/70 dark:bg-indigo-950/20
+      bg-gradient-to-br from-indigo-50 via-background to-background
+      dark:from-indigo-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-indigo-200 dark:bg-indigo-950/40`,
     accent: "bg-indigo-500",
     badge: `
       border-indigo-200 bg-indigo-100 text-indigo-700
@@ -206,9 +200,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   cms: {
     card: `
       border-lime-200/70 dark:border-lime-900/60
-      bg-lime-50/70 dark:bg-lime-950/20
+      bg-gradient-to-br from-lime-50 via-background to-background
+      dark:from-lime-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-lime-200 dark:bg-lime-950/40`,
     accent: "bg-lime-500",
     badge: `
       border-lime-200 bg-lime-100 text-lime-700
@@ -227,9 +221,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   hosting: {
     card: `
       border-teal-200/70 dark:border-teal-900/60
-      bg-teal-50/70 dark:bg-teal-950/20
+      bg-gradient-to-br from-teal-50 via-background to-background
+      dark:from-teal-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-teal-200 dark:bg-teal-950/40`,
     accent: "bg-teal-500",
     badge: `
       border-teal-200 bg-teal-100 text-teal-700
@@ -248,9 +242,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   authentication: {
     card: `
       border-rose-200/70 dark:border-rose-900/60
-      bg-rose-50/70 dark:bg-rose-950/20
+      bg-gradient-to-br from-rose-50 via-background to-background
+      dark:from-rose-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-rose-200 dark:bg-rose-950/40`,
     accent: "bg-rose-500",
     badge: `
       border-rose-200 bg-rose-100 text-rose-700
@@ -269,9 +263,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   ai: {
     card: `
       border-fuchsia-200/70 dark:border-fuchsia-900/60
-      bg-fuchsia-50/70 dark:bg-fuchsia-950/20
+      bg-gradient-to-br from-fuchsia-50 via-background to-background
+      dark:from-fuchsia-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-fuchsia-200 dark:bg-fuchsia-950/40`,
     accent: "bg-fuchsia-500",
     badge: `
       border-fuchsia-200 bg-fuchsia-100 text-fuchsia-700
@@ -290,9 +284,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   analytics: {
     card: `
       border-blue-200/70 dark:border-blue-900/60
-      bg-blue-50/70 dark:bg-blue-950/20
+      bg-gradient-to-br from-blue-50 via-background to-background
+      dark:from-blue-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-blue-200 dark:bg-blue-950/40`,
     accent: "bg-blue-500",
     badge: `
       border-blue-200 bg-blue-100 text-blue-700
@@ -311,9 +305,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   productivity: {
     card: `
       border-purple-200/70 dark:border-purple-900/60
-      bg-purple-50/70 dark:bg-purple-950/20
+      bg-gradient-to-br from-purple-50 via-background to-background
+      dark:from-purple-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-purple-200 dark:bg-purple-950/40`,
     accent: "bg-purple-500",
     badge: `
       border-purple-200 bg-purple-100 text-purple-700
@@ -332,9 +326,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   security: {
     card: `
       border-red-200/70 dark:border-red-900/60
-      bg-red-50/70 dark:bg-red-950/20
+      bg-gradient-to-br from-red-50 via-background to-background
+      dark:from-red-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-red-200 dark:bg-red-950/40`,
     accent: "bg-red-500",
     badge: `
       border-red-200 bg-red-100 text-red-700
@@ -353,9 +347,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   mobile: {
     card: `
       border-slate-300/70 dark:border-slate-700/70
-      bg-slate-50/70 dark:bg-slate-900/40
+      bg-gradient-to-br from-slate-50 via-background to-background
+      dark:from-slate-900/40 dark:via-background dark:to-background
     `,
-    headerBg: `bg-slate-200 dark:bg-slate-800/70`,
     accent: "bg-slate-500",
     badge: `
       border-slate-200 bg-slate-100 text-slate-700
@@ -374,9 +368,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   deployment: {
     card: `
       border-yellow-200/70 dark:border-yellow-900/60
-      bg-yellow-50/70 dark:bg-yellow-950/20
+      bg-gradient-to-br from-yellow-50 via-background to-background
+      dark:from-yellow-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-yellow-200 dark:bg-yellow-950/40`,
     accent: "bg-yellow-500",
     badge: `
       border-yellow-200 bg-yellow-100 text-yellow-700
@@ -395,9 +389,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   monitoring: {
     card: `
       border-green-200/70 dark:border-green-900/60
-      bg-green-50/70 dark:bg-green-950/20
+      bg-gradient-to-br from-green-50 via-background to-background
+      dark:from-green-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-green-200 dark:bg-green-950/40`,
     accent: "bg-green-500",
     badge: `
       border-green-200 bg-green-100 text-green-700
@@ -416,9 +410,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   collaboration: {
     card: `
       border-violet-200/70 dark:border-violet-900/60
-      bg-violet-50/70 dark:bg-violet-950/20
+      bg-gradient-to-br from-violet-50 via-background to-background
+      dark:from-violet-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-violet-200 dark:bg-violet-950/40`,
     accent: "bg-violet-500",
     badge: `
       border-violet-200 bg-violet-100 text-violet-700
@@ -437,9 +431,9 @@ export const CATEGORY_STYLES: Record<string, ResourceCategoryStyle> = {
   learning: {
     card: `
       border-emerald-200/70 dark:border-emerald-900/60
-      bg-emerald-50/70 dark:bg-emerald-950/20
+      bg-gradient-to-br from-emerald-50 via-background to-background
+      dark:from-emerald-950/30 dark:via-background dark:to-background
     `,
-    headerBg: `bg-emerald-200 dark:bg-emerald-950/40`,
     accent: "bg-emerald-500",
     badge: `
       border-emerald-200 bg-emerald-100 text-emerald-700

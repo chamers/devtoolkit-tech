@@ -6,6 +6,13 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ResourceProvider } from "@/context/resource";
 import { Toaster } from "react-hot-toast";
 
+import { Caveat } from "next/font/google";
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-handwritten",
+});
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -37,7 +44,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} ${caveat.variable} antialiased`}
         >
           <ThemeProvider
             attribute="class"

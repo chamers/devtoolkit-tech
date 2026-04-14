@@ -1,14 +1,13 @@
 import Link from "next/link";
 
 import PaginationControls from "@/components/shared/pagination-controls";
-import ResourceCard from "@/components/resource/cards/resource-card";
 import ResourceFilters from "@/components/filters/resource-filters";
 import {
   getLatestResourcesFromDB,
-  getUniqueTagsFromDB,
   searchResourcesFromDB,
 } from "@/app/actions/resource";
 import { RESOURCE_CATEGORIES } from "@/utils/constants/resource-taxonomy";
+import ResourceCardRedesign from "@/components/resource/cards/resource-card-red";
 
 interface ResourcesPageProps {
   searchParams?: Promise<{
@@ -34,10 +33,8 @@ export default async function ResourcesPage({
 
   const selectedCategory = resolvedSearchParams?.category?.trim() || undefined;
   const selectedTag = resolvedSearchParams?.tag?.trim() || undefined;
-
-  const tagsResult = await getUniqueTagsFromDB();
-  const tags = tagsResult.ok ? tagsResult.data : [];
   const selectedSort = resolvedSearchParams?.sort?.trim() || "latest";
+
   if (query) {
     const result = await searchResourcesFromDB(query);
 
@@ -65,9 +62,9 @@ export default async function ResourcesPage({
           </p>
         </div>
 
-        <div className="grid w-full max-w-7xl gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="grid w-full max-w-7xl gap-8 lg:grid-cols-[240px_minmax(0,1fr)]">
           <div className="lg:sticky lg:top-6 lg:self-start">
-            <ResourceFilters categories={RESOURCE_CATEGORIES} tags={tags} />
+            <ResourceFilters categories={RESOURCE_CATEGORIES} />
           </div>
 
           {resources.length === 0 ? (
@@ -78,39 +75,18 @@ export default async function ResourcesPage({
             </div>
           ) : (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 {resources.map((resource) => (
                   <Link
                     key={resource._id}
                     href={`/resources/${resource.slug}`}
-                    className="block h-full"
+                    className="block h-full w-full"
                   >
-                    <div className="h-full transform transition duration-300 hover:scale-[1.02]">
-                      <ResourceCard resource={resource} />
+                    <div className="h-full w-full transform transition duration-300 hover:scale-[1.02]">
+                      <ResourceCardRedesign resource={resource} />
                     </div>
                   </Link>
                 ))}
-                {/* {resources.map((resource) => {
-                  const mockResource = {
-                    ...resource,
-                    communityRating: {
-                      average: 4.3,
-                      count: 12,
-                    },
-                  };
-
-                  return (
-                    <Link
-                      key={resource._id}
-                      href={`/resources/${resource.slug}`}
-                      className="block h-full"
-                    >
-                      <div className="h-full transform transition duration-300 hover:scale-[1.02]">
-                        <ResourceCard resource={mockResource} />
-                      </div>
-                    </Link>
-                  );
-                })} */}
               </div>
             </div>
           )}
@@ -147,9 +123,9 @@ export default async function ResourcesPage({
         </p>
       </div>
 
-      <div className="grid w-full max-w-7xl gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="grid w-full max-w-7xl gap-8 lg:grid-cols-[240px_minmax(0,1fr)]">
         <div className="lg:sticky lg:top-6 lg:self-start">
-          <ResourceFilters categories={RESOURCE_CATEGORIES} tags={tags} />
+          <ResourceFilters categories={RESOURCE_CATEGORIES} />
         </div>
 
         {resources.length === 0 ? (
@@ -160,15 +136,15 @@ export default async function ResourcesPage({
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2">
               {resources.map((resource) => (
                 <Link
                   key={resource._id}
                   href={`/resources/${resource.slug}`}
-                  className="block h-full"
+                  className="block h-full w-full"
                 >
-                  <div className="h-full transform transition duration-300 hover:scale-[1.02]">
-                    <ResourceCard resource={resource} />
+                  <div className="h-full w-full transform transition duration-300 hover:scale-[1.02]">
+                    <ResourceCardRedesign resource={resource} />
                   </div>
                 </Link>
               ))}
