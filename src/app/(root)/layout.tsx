@@ -1,4 +1,5 @@
 import TopNav from "@/components/nav/top-nav";
+import Footer from "@/components/footer/footer";
 
 const LandingPageLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -13,6 +14,8 @@ const LandingPageLayout = ({ children }: { children: React.ReactNode }) => {
       </header>
 
       <main className="flex-1">{children}</main>
+
+      <Footer />
     </div>
   );
 };
