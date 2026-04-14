@@ -52,7 +52,7 @@ const Footer = () => {
               Links
             </h4>
 
-            <ul className="mt-4 space-y-3 text-sm">
+            <ul className="mt-4 space-y-3 text-sm list-none pl-0">
               <li>
                 <Link
                   href="/resources"
