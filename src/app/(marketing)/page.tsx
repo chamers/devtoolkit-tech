@@ -55,19 +55,16 @@ export default async function LandingPage() {
   return (
     <div className="relative min-h-screen bg-stone-100 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
       {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-stone-300/60 min-h-[75vh]">
-        {/* Background image */}
+      <section className="relative min-h-[75vh] overflow-hidden border-b border-stone-300/60">
         <div
           className="absolute inset-0 bg-cover bg-top"
           style={{ backgroundImage: 'url("/images/hero.png")' }}
         />
 
-        {/* Dark overlay (like original) */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-black/50 to-black/70" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-black/45 to-black/60" />
 
-        {/* Content */}
         <div className="relative z-10 mx-auto grid min-h-[75vh] max-w-7xl items-center gap-10 px-4 py-12 md:px-6 lg:grid-cols-2 lg:gap-16">
-          <div className="max-w-2xl">
+          <div className="min-w-0 max-w-2xl">
             <h1 className="mb-6 text-4xl font-bold text-white md:text-5xl">
               Discover and promote software tools with{" "}
               <span className="inline-block">
@@ -77,7 +74,7 @@ export default async function LandingPage() {
               </span>
             </h1>
 
-            <p className="mx-auto mb-5 text-white">
+            <p className="mb-5 text-white">
               DevToolkit is a comprehensive hub of tools and resources to help
               developers build faster. Explore web development, backend, design,
               and code management resources all in one place.
@@ -88,11 +85,11 @@ export default async function LandingPage() {
                 <Button
                   size="lg"
                   className="
-      w-full px-6 py-6 text-base
-      bg-stone-100 text-stone-900
-      hover:bg-stone-200
-      transition-colors
-    "
+              w-full px-6 py-6 text-base
+              bg-stone-100 text-stone-900
+              hover:bg-stone-200
+              transition-colors
+            "
                 >
                   Explore Resources <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -102,11 +99,11 @@ export default async function LandingPage() {
                 <Button
                   size="lg"
                   className="
-      w-full px-6 py-6 text-base
-      bg-stone-100 text-stone-900
-      hover:bg-stone-200
-      transition-colors
-    "
+              w-full px-6 py-6 text-base
+              bg-stone-100 text-stone-900
+              hover:bg-stone-200
+              transition-colors
+            "
                 >
                   Add Your Resource <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -114,11 +111,11 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          <div className="relative hidden md:block">
+          <div className="relative hidden min-w-0 md:block">
             <RotaryResourceCarousel items={carouselItems} />
           </div>
 
-          <div className="md:hidden">
+          <div className="min-w-0 md:hidden">
             <MobileResourceScroller items={carouselItems} />
           </div>
         </div>
@@ -282,23 +279,21 @@ function MobileResourceScroller({
   if (!items.length) return null;
 
   return (
-    <div className="mt-8">
+    <div className="mt-8 w-full min-w-0">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-sm font-medium text-white/90">Featured resources</p>
         <p className="text-xs text-white/70">Swipe</p>
       </div>
 
-      <div className="-mx-4 overflow-x-auto pb-4">
-        <div className="flex snap-x snap-mandatory gap-4 px-4">
+      <div className="-mx-4 w-[calc(100%+2rem)] overflow-x-auto pb-4 pl-4 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex w-max snap-x snap-mandatory gap-4 pr-4">
           {items.map((item) => (
             <Link
               key={item.id}
               href={item.href}
-              className="min-w-[260px] max-w-[260px] snap-start"
+              className="block w-[260px] shrink-0 snap-start"
             >
               <article className="group h-full rounded-[1.65rem] border border-stone-300 bg-gradient-to-b from-stone-50 to-stone-100 p-5 shadow-[0_18px_40px_rgba(20,16,10,0.22)] transition-transform duration-200 active:scale-[0.98] dark:border-stone-700 dark:from-stone-900 dark:to-stone-950">
-                <div className="absolute" />
-
                 <div
                   className={`mb-5 rounded-2xl border border-stone-300/80 bg-gradient-to-r px-4 py-3 dark:border-stone-700/80 ${item.accent ?? "from-stone-200 to-stone-100"}`}
                 >
