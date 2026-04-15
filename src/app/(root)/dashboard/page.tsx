@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import SkeletonCard from "@/components/resource/cards/skeleton-card";
-import PreviewCard from "@/components/resource/preview/preview-card";
+import PreviewCard from "@/components/resource/cards/preview-card";
 import { useResource } from "@/context/resource";
 
 const Dashboard = () => {

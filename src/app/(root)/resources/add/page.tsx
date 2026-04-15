@@ -1,6 +1,6 @@
 "use client";
 
-import PreviewCard from "@/components/resource/preview/preview-card";
+import PreviewCard from "@/components/resource/cards/preview-card";
 import ResourceForm from "@/components/resource/forms/resource-form";
 import { useResource } from "@/context/resource";
 

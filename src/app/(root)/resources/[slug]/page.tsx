@@ -3,7 +3,7 @@ import type { JSONContent } from "@tiptap/react";
 
 import { getResourceBySlugFromDB } from "@/app/actions/resource";
 import ResourceHighlightCard from "@/components/resource/cards/resource-highlight-card";
-import SingleResourceCard from "@/components/resource/cards/single-resource-card";
+import ResourceDetailCard from "@/components/resource/cards/resource-detail-card";
 
 import ResourceRatingSection from "@/components/resource/ratings/resource-rating-section";
 
@@ -171,7 +171,7 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
       <div className="mx-1 md:m-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="order-2 space-y-4 md:order-1 md:col-span-2">
-            <SingleResourceCard resource={resource} />
+            <ResourceDetailCard resource={resource} />
 
             <ResourceRatingSection
               resourceId={resource._id}

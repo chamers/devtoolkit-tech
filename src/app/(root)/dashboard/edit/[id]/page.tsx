@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import PreviewCard from "@/components/resource/preview/preview-card";
+import PreviewCard from "@/components/resource/cards/preview-card";
 import ResourceForm from "@/components/resource/forms/resource-form";
 import ReviewActions from "@/components/admin/review-actions";
 import { useResource } from "@/context/resource";

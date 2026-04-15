@@ -91,7 +91,7 @@ export default async function AdminDashboard({
         )}
 
         <div className="rounded-xl border p-4">
-          <ResourceFilters categories={RESOURCE_CATEGORIES} tags={tags} />
+          <ResourceFilters categories={RESOURCE_CATEGORIES} />
         </div>
       </div>
     </div>
