@@ -66,7 +66,7 @@ export default async function LandingPage() {
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-black/50 to-black/70" />
 
         {/* Content */}
-        <div className="relative z-10 mx-auto grid min-h-[75vh] max-w-7xl items-center gap-12 px-4 py-12 md:px-6 lg:grid-cols-2 lg:gap-16">
+        <div className="relative z-10 mx-auto grid min-h-[75vh] max-w-7xl items-center gap-10 px-4 py-12 md:px-6 lg:grid-cols-2 lg:gap-16">
           <div className="max-w-2xl">
             <h1 className="mb-6 text-4xl font-bold text-white md:text-5xl">
               Discover and promote software tools with{" "}
@@ -114,8 +114,12 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative hidden md:block">
             <RotaryResourceCarousel items={carouselItems} />
+          </div>
+
+          <div className="md:hidden">
+            <MobileResourceScroller items={carouselItems} />
           </div>
         </div>
       </section>
@@ -259,6 +263,73 @@ function FeatureCard({ icon, title, description }: FeatureCardProps) {
       <p className="text-center text-gray-600 dark:text-gray-300">
         {description}
       </p>
+    </div>
+  );
+}
+
+function MobileResourceScroller({
+  items,
+}: {
+  items: {
+    id: string;
+    title: string;
+    href: string;
+    category: string;
+    tagline?: string;
+    accent?: string;
+  }[];
+}) {
+  if (!items.length) return null;
+
+  return (
+    <div className="mt-8">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-sm font-medium text-white/90">Featured resources</p>
+        <p className="text-xs text-white/70">Swipe</p>
+      </div>
+
+      <div className="-mx-4 overflow-x-auto pb-4">
+        <div className="flex snap-x snap-mandatory gap-4 px-4">
+          {items.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className="min-w-[260px] max-w-[260px] snap-start"
+            >
+              <article className="group h-full rounded-[1.65rem] border border-stone-300 bg-gradient-to-b from-stone-50 to-stone-100 p-5 shadow-[0_18px_40px_rgba(20,16,10,0.22)] transition-transform duration-200 active:scale-[0.98] dark:border-stone-700 dark:from-stone-900 dark:to-stone-950">
+                <div className="absolute" />
+
+                <div
+                  className={`mb-5 rounded-2xl border border-stone-300/80 bg-gradient-to-r px-4 py-3 dark:border-stone-700/80 ${item.accent ?? "from-stone-200 to-stone-100"}`}
+                >
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-stone-700 dark:text-stone-900">
+                    {item.category}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="line-clamp-2 font-serif text-xl leading-tight text-stone-900 dark:text-stone-100">
+                    {item.title}
+                  </h3>
+
+                  <div className="h-px w-full bg-stone-300 dark:bg-stone-700" />
+
+                  <p className="line-clamp-4 text-sm leading-6 text-stone-700 dark:text-stone-300">
+                    {item.tagline ?? "Explore this resource on DevToolkit."}
+                  </p>
+                </div>
+
+                <div className="mt-6 flex items-center justify-between text-sm text-stone-700 dark:text-stone-300">
+                  <span className="font-medium tracking-wide">
+                    View resource
+                  </span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </div>
+              </article>
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
