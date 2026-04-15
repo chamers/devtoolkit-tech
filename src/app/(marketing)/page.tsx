@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import RotaryResourceCarousel from "@/components/resource/rotary-resource-carousel";
+import { getLatestResourcesFromDB } from "@/app/actions/resource";
 import {
   ArrowRight,
   Search,
@@ -12,21 +14,60 @@ import {
   Cpu,
 } from "lucide-react";
 
-export default function LandingPage() {
-  return (
-    <div className="relative min-h-screen bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-      {/* Hero Section */}
-      <div
-        className="relative bg-cover bg-top"
-        style={{
-          backgroundImage: 'url("/images/hero.png")',
-          height: "70vh",
-        }}
-      >
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent to-[#010818]" />
+function getCarouselAccent(category?: string) {
+  switch (category?.toLowerCase()) {
+    case "frontend":
+      return "from-sky-200/80 to-sky-100";
+    case "backend":
+      return "from-emerald-200/80 to-emerald-100";
+    case "design":
+      return "from-amber-200/80 to-amber-100";
+    case "inspiration":
+      return "from-rose-200/80 to-rose-100";
+    case "assets":
+      return "from-orange-200/80 to-orange-100";
+    case "productivity":
+      return "from-violet-200/80 to-violet-100";
+    default:
+      return "from-stone-200 to-stone-100";
+  }
+}
 
-        <div className="relative z-10 flex h-full items-center justify-center">
-          <div className="w-full max-w-4xl px-4 text-center">
+export default async function LandingPage() {
+  const latestResourcesResult = await getLatestResourcesFromDB();
+
+  const latestResources = latestResourcesResult.ok
+    ? latestResourcesResult.data.resources
+    : [];
+
+  const carouselItems = latestResources.slice(0, 6).map((resource) => ({
+    id: String(resource._id),
+    title: resource.name,
+    href: `/resources/${resource.slug}`,
+    category: resource.category ?? "resource",
+    tagline:
+      typeof resource.tagline === "string"
+        ? resource.tagline
+        : "Explore this developer resource on DevToolkit.",
+    accent: getCarouselAccent(resource.category),
+  }));
+
+  return (
+    <div className="relative min-h-screen bg-stone-100 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden border-b border-stone-300/60 min-h-[75vh]">
+        {/* Background image */}
+        <div
+          className="absolute inset-0 bg-cover bg-top"
+          style={{ backgroundImage: 'url("/images/hero.png")' }}
+        />
+
+        {/* Dark overlay (like original) */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-black/50 to-black/70" />
+
+        {/* Content */}
+        <div className="relative z-10 mx-auto grid min-h-[75vh] max-w-7xl items-center gap-12 px-4 py-12 md:px-6 lg:grid-cols-2 lg:gap-16">
+          <div className="max-w-2xl">
             <h1 className="mb-6 text-4xl font-bold text-white md:text-5xl">
               Discover and promote software tools with{" "}
               <span className="inline-block">
@@ -42,17 +83,42 @@ export default function LandingPage() {
               and code management resources all in one place.
             </p>
 
-            <Link href="/resources/add">
-              <Button
-                size="lg"
-                className="w-full px-4 py-2 text-lg md:w-auto md:px-8 md:py-4"
-              >
-                Add Your Resource for Free <ArrowRight className="ml-2" />
-              </Button>
-            </Link>
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+              <Link href="/resources" className="w-full sm:w-auto">
+                <Button
+                  size="lg"
+                  className="
+      w-full px-6 py-6 text-base
+      bg-stone-100 text-stone-900
+      hover:bg-stone-200
+      transition-colors
+    "
+                >
+                  Explore Resources <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+
+              <Link href="/resources/add" className="w-full sm:w-auto">
+                <Button
+                  size="lg"
+                  className="
+      w-full px-6 py-6 text-base
+      bg-stone-100 text-stone-900
+      hover:bg-stone-200
+      transition-colors
+    "
+                >
+                  Add Your Resource <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="relative">
+            <RotaryResourceCarousel items={carouselItems} />
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Features Section */}
       <section id="features" className="px-4 py-20">
