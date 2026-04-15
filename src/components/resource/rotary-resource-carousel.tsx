@@ -114,7 +114,6 @@ export default function RotaryResourceCarousel({
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={(event) => {
-        setIsPaused(true);
         dragStartX.current = event.touches[0]?.clientX ?? null;
       }}
       onTouchEnd={(event) => {
@@ -132,7 +131,6 @@ export default function RotaryResourceCarousel({
         }
 
         dragStartX.current = null;
-        setIsPaused(false);
       }}
       aria-label="Featured resources"
     >
